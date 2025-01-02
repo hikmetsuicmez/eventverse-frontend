@@ -9,7 +9,9 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import Notifications from './pages/Notifications';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import EventForm from './components/EventForm';
 
 const theme = createTheme({
   palette: {
@@ -81,6 +83,22 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute>
+                    <Notifications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/create-event"
+                element={
+                  <ProtectedRoute>
+                    <EventForm />
                   </ProtectedRoute>
                 }
               />

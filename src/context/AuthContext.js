@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        const response = await api.get('api/v1/users/profile');
+        const response = await api.get('/api/v1/users/profile');
         setUser(response.data);
         setIsAuthenticated(true);
       }
@@ -45,11 +45,12 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const response = await api.post('/auth/login', credentials);
-      const { token } = response.data;
+      console.log('Login isteği gönderiliyor:', credentials);
+      const response = await api.post('/api/auth/login', credentials);
+      console.log('Login yanıtı:', response.data);
       
-      if (token) {
-        localStorage.setItem('token', token);
+      if (response.data && response.data.token) {
+        localStorage.setItem('token', response.data.token);
         setIsAuthenticated(true);
         await fetchUserData();
         return response.data;
@@ -64,7 +65,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await api.post('/auth/register', userData);
+      const response = await api.post('/api/auth/register', userData);
       return response.data;
     } catch (error) {
       console.error('Register hatası:', {
