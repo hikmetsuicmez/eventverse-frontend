@@ -1,16 +1,39 @@
 import api from './api';
 
 const NotificationService = {
-  // Tüm bildirimleri getir
   getNotifications: async () => {
-    const response = await api.get('/api/v1/notifications');
-    return response.data;
+    try {
+      const response = await api.get('/api/v1/notifications');
+      return response;
+    } catch (error) {
+      console.error('Get notifications error:', error);
+      throw error;
+    }
   },
 
-  // Bildirimi okundu olarak işaretle
+  getUnreadNotifications: async () => {
+    try {
+      const response = await api.get('/api/v1/notifications/unread');
+      return response;
+    } catch (error) {
+      console.error('Get unread notifications error:', error);
+      throw error;
+    }
+  },
+
   markAsRead: async (notificationId) => {
-    const response = await api.patch(`/api/v1/notifications/${notificationId}/read`);
-    return response.data;
+    try {
+      const response = await api.patch(`/api/v1/notifications/${notificationId}/read`, {}, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      return response;
+    } catch (error) {
+      console.error('Mark notification as read error:', error);
+      throw error;
+    }
   }
 };
 
