@@ -14,7 +14,8 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (token) {
         const response = await api.get('/api/v1/users/profile');
-        setUser(response.data);
+        console.log('Profil bilgileri:', response.data);
+        setUser(response.data.data);
         setIsAuthenticated(true);
       }
     } catch (error) {
@@ -84,6 +85,10 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    updateUser: (updatedUserData) => {
+      setUser(updatedUserData);
+      localStorage.setItem('user', JSON.stringify(updatedUserData));
+    }
   };
 
   if (loading) {

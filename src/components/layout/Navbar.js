@@ -216,7 +216,7 @@ const Navbar = () => {
                   onClick={() => navigate('/profile')}
                 >
                   <Avatar 
-                    src={user?.profileImage} 
+                    src={user?.profilePicture} 
                     alt={user?.firstName}
                     sx={{ 
                       width: 38, 

@@ -52,6 +52,9 @@ const validationSchema = Yup.object({
       const errors = getPasswordErrors(value);
       return errors.length === 0 ? true : this.createError({ message: errors.join(', ') });
     }),
+  confirmPassword: Yup.string()
+    .required('Şifre tekrarı boş olamaz')
+    .oneOf([Yup.ref('password'), null], 'Şifreler eşleşmiyor'),
   firstName: Yup.string()
     .required('İsim boş olamaz')
     .min(2, 'İsim 2-50 karakter arasında olmalıdır')
@@ -65,14 +68,7 @@ const validationSchema = Yup.object({
     .matches(/^[0-9]{10}$/, 'Telefon numarası 10 haneli olmalıdır'),
   address: Yup.string()
     .required('Adres boş olamaz')
-    .max(200, 'Adres en fazla 200 karakter olabilir'),
-  profilePicture: Yup.string()
-    .matches(
-      /^(https?:\/\/)[\w-]+(\.[\w-]+)+([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/,
-      'Geçerli bir profil resmi URL\'si giriniz'
-    )
-    .default('https://www.gravatar.com/avatar/default?d=mp')
-    .transform((value) => value || 'https://www.gravatar.com/avatar/default?d=mp')
+    .max(200, 'Adres en fazla 200 karakter olabilir')
 });
 
 const Register = () => {
@@ -85,19 +81,18 @@ const Register = () => {
     initialValues: {
       email: '',
       password: '',
+      confirmPassword: '',
       firstName: '',
       lastName: '',
       phoneNumber: '',
-      address: '',
-      profilePicture: 'https://www.gravatar.com/avatar/default?d=mp'
+      address: ''
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
       try {
         const formattedValues = {
           ...values,
-          phoneNumber: values.phoneNumber.startsWith('+90') ? values.phoneNumber : '+90' + values.phoneNumber,
-          profilePicture: values.profilePicture || 'https://www.gravatar.com/avatar/default?d=mp'
+          phoneNumber: values.phoneNumber.startsWith('+90') ? values.phoneNumber : '+90' + values.phoneNumber
         };
 
         console.log('Form verileri:', formattedValues);
@@ -235,6 +230,33 @@ const Register = () => {
                   </Box>
                 )
               }
+              sx={{ mb: 2 }}
+              disabled={formik.isSubmitting}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                      disabled={formik.isSubmitting}
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <TextField
+              fullWidth
+              label="Şifre Tekrarı"
+              name="confirmPassword"
+              type={showPassword ? 'text' : 'password'}
+              value={formik.values.confirmPassword}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.confirmPassword && Boolean(formik.errors.confirmPassword)}
+              helperText={formik.touched.confirmPassword && formik.errors.confirmPassword}
               sx={{ mb: 2 }}
               disabled={formik.isSubmitting}
               InputProps={{

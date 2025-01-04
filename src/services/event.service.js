@@ -21,6 +21,26 @@ const EventService = {
     }
   },
 
+  getMyEvents: async () => {
+    try {
+      const response = await api.get('/api/v1/events/my-events');
+      return response.data;
+    } catch (error) {
+      console.error('Get my events error:', error);
+      throw error;
+    }
+  },
+
+  getMyCreatedEvents: async () => {
+    try {
+      const response = await api.get('/api/v1/events/my-created-events');
+      return response.data;
+    } catch (error) {
+      console.error('Get my created events error:', error);
+      throw error;
+    }
+  },
+
   createEvent: async (eventData) => {
     try {
       const response = await api.post('/api/v1/events', eventData);

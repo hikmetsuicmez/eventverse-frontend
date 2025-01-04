@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Typography, Grid, Card, CardContent, Button, Box } from '@mui/material';
+import { Container, Typography, Grid, Card, CardContent, Button, Box, Avatar, Tooltip } from '@mui/material';
 import { Link } from 'react-router-dom';
 import ExploreIcon from '@mui/icons-material/Explore';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
