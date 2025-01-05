@@ -27,7 +27,7 @@ import { format } from 'date-fns';
 import { tr } from 'date-fns/locale/tr';
 import { useNavigate } from 'react-router-dom';
 import NotificationService from '../services/notification.service';
-import { notificationEvents } from '../components/layout/Navbar';
+import { notificationEvents } from '../utils/notificationEvents';
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);

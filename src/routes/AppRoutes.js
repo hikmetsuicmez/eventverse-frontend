@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import Home from '../pages/Home';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
+import Favorites from '../pages/Favorites';
 import Dashboard from '../pages/Dashboard';
 import Notifications from '../pages/Notifications';
 import Profile from '../pages/Profile';
@@ -48,6 +49,7 @@ const AppRoutes = () => {
             </PublicRoute>
           } 
         />
+        
         <Route 
           path="/login" 
           element={
@@ -93,6 +95,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/favorites"
+          element={
+            <ProtectedRoute>
+              <Favorites />
             </ProtectedRoute>
           }
         />
