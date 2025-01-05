@@ -33,7 +33,8 @@ import {
   CalendarMonth,
   LocationOn,
   Group,
-  AttachMoney
+  AttachMoney,
+  Favorite as FavoriteIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale/tr';
@@ -41,12 +42,14 @@ import { useAuth } from '../context/AuthContext';
 import EventService from '../services/event.service';
 import UserService from '../services/user.service';
 import { Link } from 'react-router-dom';
+import FavoriteService from '../services/favorite.service';
 
 const Profile = () => {
   const { user: authUser, updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [participatedEvents, setParticipatedEvents] = useState([]);
   const [createdEvents, setCreatedEvents] = useState([]);
+  const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [profileData, setProfileData] = useState(null);
@@ -65,6 +68,7 @@ const Profile = () => {
   useEffect(() => {
     fetchProfileData();
     fetchUserEvents();
+    fetchFavorites();
   }, []);
 
   const fetchProfileData = async () => {
@@ -100,6 +104,15 @@ const Profile = () => {
       setError('Etkinlikler alınamadı');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFavorites = async () => {
+    try {
+      const response = await FavoriteService.getFavorites();
+      setFavorites(response || []);
+    } catch (error) {
+      console.error('Favoriler alınamadı:', error);
     }
   };
 
@@ -336,7 +349,7 @@ const Profile = () => {
                         {participatedEvents.length}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Etkinlik
+                        Katıldığım
                       </Typography>
                     </Paper>
                   </Grid>
@@ -354,7 +367,37 @@ const Profile = () => {
                         {createdEvents.length}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Etkinlik
+                        Düzenlediğim
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Paper
+                      component={Link}
+                      to="/favorites"
+                      elevation={0}
+                      sx={{
+                        p: 2,
+                        textAlign: 'center',
+                        bgcolor: 'rgba(255, 23, 68, 0.04)',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        textDecoration: 'none',
+                        transition: 'all 0.2s',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        '&:hover': {
+                          bgcolor: 'rgba(255, 23, 68, 0.08)',
+                          transform: 'translateY(-2px)'
+                        }
+                      }}
+                    >
+                      <Typography variant="h6" sx={{ color: '#ff1744', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <FavoriteIcon sx={{ fontSize: 20 }} /> {favorites.length}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#ff1744' }}>
+                        Favori Etkinliklerim
                       </Typography>
                     </Paper>
                   </Grid>
