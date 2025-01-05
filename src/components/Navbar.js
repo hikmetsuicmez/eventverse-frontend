@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AppBar,
   Box,
@@ -20,11 +20,35 @@ import SearchIcon from '@mui/icons-material/Search';
 import HomeIcon from '@mui/icons-material/Home';
 import AddIcon from '@mui/icons-material/Add';
 import { alpha } from '@mui/material/styles';
+import NotificationService from '../services/notification.service';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (user) {
+        try {
+          const response = await NotificationService.getUnreadNotifications();
+          const notifications = response.data.data || [];
+          setUnreadCount(notifications.length);
+        } catch (error) {
+          console.error('Bildirimler alınamadı:', error);
+          setUnreadCount(0);
+        }
+      }
+    };
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [user]);
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -87,58 +111,38 @@ const Navbar = () => {
             EventVerse
           </Typography>
 
-          {/* Arama Çubuğu */}
-          <Box
-            sx={{
-              maxWidth: '300px',
-              minWidth: '200px',
-              width: '100%'
-            }}
-          >
-            <Box
-              sx={{
-                position: 'relative',
-                borderRadius: '8px',
-                backgroundColor: '#fff',
-                width: '100%',
-                height: '36px',
-                display: 'flex',
-                alignItems: 'center',
-                boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
-                '&:hover': {
-                  boxShadow: '0 3px 7px rgba(0,0,0,0.15)',
-                },
-              }}
-            >
-              <Box sx={{ 
-                height: '100%', 
-                display: 'flex', 
-                alignItems: 'center',
-                pl: 1.5
-              }}>
-                <SearchIcon sx={{ color: '#666', fontSize: '18px' }} />
-              </Box>
-              <InputBase
-                placeholder="Ara..."
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  '& .MuiInputBase-input': {
-                    pl: 1,
-                    pr: 2,
-                    py: 0.5,
-                    fontSize: '0.9rem',
-                    width: '100%',
-                    height: '100%',
-                    color: '#333',
-                    '&::placeholder': {
-                      color: '#666',
-                      opacity: 1
-                    }
-                  }
-                }}
-              />
+          <Box sx={{ 
+            position: 'relative',
+            borderRadius: 1,
+            bgcolor: alpha('#ffffff', 0.15),
+            '&:hover': {
+              bgcolor: alpha('#ffffff', 0.25),
+            },
+            width: '300px'
+          }}>
+            <Box sx={{ 
+              padding: '0 12px',
+              height: '100%',
+              position: 'absolute',
+              pointerEvents: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <SearchIcon sx={{ color: 'rgba(255,255,255,0.7)' }}/>
             </Box>
+            <InputBase
+              placeholder="Etkinlik veya kullanıcı ara..."
+              sx={{
+                color: 'white',
+                padding: '8px 8px 8px 48px',
+                width: '100%',
+                '& input::placeholder': {
+                  color: 'rgba(255,255,255,0.7)',
+                  opacity: 1
+                }
+              }}
+            />
           </Box>
         </Box>
 
@@ -170,7 +174,17 @@ const Navbar = () => {
                   }
                 }}
               >
-                <Badge badgeContent={1} color="error">
+                <Badge 
+                  badgeContent={unreadCount} 
+                  color="error"
+                  invisible={unreadCount === 0}
+                  sx={{
+                    '& .MuiBadge-badge': {
+                      background: 'linear-gradient(45deg, #FF5252, #FF1744)',
+                      boxShadow: '0 2px 5px rgba(255,23,68,0.5)'
+                    }
+                  }}
+                >
                   <NotificationsIcon />
                 </Badge>
               </IconButton>
@@ -254,35 +268,32 @@ const Navbar = () => {
             </Menu>
           </Box>
         ) : (
-          <Box sx={{ display: 'flex', gap: 3, minWidth: '200px', justifyContent: 'flex-end' }}>
-            <Typography
-              component={Link}
-              to="/login"
-              sx={{
-                color: 'white',
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Link 
+              to="/login" 
+              style={{ 
                 textDecoration: 'none',
-                fontWeight: 500,
-                '&:hover': {
-                  color: '#90caf9'
-                }
+                color: 'white',
+                padding: '8px 16px',
+                borderRadius: '4px',
+                transition: 'background-color 0.2s'
               }}
             >
               Giriş Yap
-            </Typography>
-            <Typography
-              component={Link}
-              to="/register"
-              sx={{
-                color: 'white',
+            </Link>
+            <Link 
+              to="/register" 
+              style={{ 
                 textDecoration: 'none',
-                fontWeight: 500,
-                '&:hover': {
-                  color: '#90caf9'
-                }
+                backgroundColor: '#1976d2',
+                color: 'white',
+                padding: '8px 16px',
+                borderRadius: '4px',
+                transition: 'background-color 0.2s'
               }}
             >
               Kayıt Ol
-            </Typography>
+            </Link>
           </Box>
         )}
       </Toolbar>

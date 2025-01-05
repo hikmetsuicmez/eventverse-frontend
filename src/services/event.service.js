@@ -41,6 +41,34 @@ const EventService = {
     }
   },
 
+  getUserEvents: async (userId) => {
+    try {
+      const response = await api.get(`/api/v1/users/${userId}/events`);
+      return {
+        data: {
+          data: response.data.data || []
+        }
+      };
+    } catch (error) {
+      console.error('Get user events error:', error);
+      throw error;
+    }
+  },
+
+  getUserCreatedEvents: async (userId) => {
+    try {
+      const response = await api.get(`/api/v1/users/${userId}/created-events`);
+      return {
+        data: {
+          data: response.data.data || []
+        }
+      };
+    } catch (error) {
+      console.error('Get user created events error:', error);
+      throw error;
+    }
+  },
+
   createEvent: async (eventData) => {
     try {
       const response = await api.post('/api/v1/events', eventData);
@@ -73,7 +101,7 @@ const EventService = {
 
   joinEvent: async (eventId) => {
     try {
-      const response = await api.post(`/api/v1/events/${eventId}/join`);
+      const response = await api.post(`/api/v1/events/${eventId}/participants`);
       return response.data;
     } catch (error) {
       console.error('Join event error:', error);
@@ -87,6 +115,16 @@ const EventService = {
       return response.data;
     } catch (error) {
       console.error('Leave event error:', error);
+      throw error;
+    }
+  },
+
+  updateParticipantStatus: async (eventId, participantId, status) => {
+    try {
+      const response = await api.patch(`/api/v1/events/${eventId}/participants/${participantId}/status?status=${status}`);
+      return response.data;
+    } catch (error) {
+      console.error('Update participant status error:', error);
       throw error;
     }
   }

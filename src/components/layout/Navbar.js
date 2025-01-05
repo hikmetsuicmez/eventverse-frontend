@@ -189,6 +189,7 @@ const Navbar = () => {
                   <Badge 
                     badgeContent={unreadCount} 
                     color="error"
+                    invisible={unreadCount === 0}
                     sx={{
                       '& .MuiBadge-badge': {
                         background: 'linear-gradient(45deg, #FF5252, #FF1744)',

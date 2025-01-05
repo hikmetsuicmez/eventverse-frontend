@@ -1,6 +1,16 @@
 import api from './api';
 
 const UserService = {
+  getUserById: async (userId) => {
+    try {
+      const response = await api.get(`/api/v1/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Get user by id error:', error);
+      throw error;
+    }
+  },
+
   getProfile: async () => {
     try {
       const response = await api.get('/api/v1/users/profile');

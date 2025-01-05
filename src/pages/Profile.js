@@ -40,6 +40,7 @@ import { tr } from 'date-fns/locale/tr';
 import { useAuth } from '../context/AuthContext';
 import EventService from '../services/event.service';
 import UserService from '../services/user.service';
+import { Link } from 'react-router-dom';
 
 const Profile = () => {
   const { user: authUser, updateUser } = useAuth();
@@ -400,11 +401,19 @@ const Profile = () => {
                       participatedEvents.map((event) => (
                         <Grid item xs={12} key={event.id}>
                           <Card
+                            component={Link}
+                            to={`/events/${event.id}`}
                             sx={{
                               display: 'flex',
                               borderRadius: '12px',
                               overflow: 'hidden',
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                              textDecoration: 'none',
+                              transition: 'transform 0.2s ease-in-out',
+                              '&:hover': {
+                                transform: 'translateY(-4px)',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                              }
                             }}
                           >
                             <Box
@@ -483,11 +492,19 @@ const Profile = () => {
                       createdEvents.map((event) => (
                         <Grid item xs={12} key={event.id}>
                           <Card
+                            component={Link}
+                            to={`/events/${event.id}`}
                             sx={{
                               display: 'flex',
                               borderRadius: '12px',
                               overflow: 'hidden',
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                              textDecoration: 'none',
+                              transition: 'transform 0.2s ease-in-out',
+                              '&:hover': {
+                                transform: 'translateY(-4px)',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                              }
                             }}
                           >
                             <Box

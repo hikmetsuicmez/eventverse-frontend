@@ -25,12 +25,14 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale/tr';
+import { useNavigate } from 'react-router-dom';
 import NotificationService from '../services/notification.service';
 import { notificationEvents } from '../components/layout/Navbar';
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchNotifications();
@@ -48,7 +50,8 @@ const Notifications = () => {
     }
   };
 
-  const handleNotificationClick = async (notification) => {
+  const handleNotificationClick = async (notification, event) => {
+    event.stopPropagation(); // İç içe geçmiş tıklamaları engelle
     try {
       if (!notification.isRead) {
         await NotificationService.markAsRead(notification.id);
@@ -57,6 +60,12 @@ const Notifications = () => {
       }
     } catch (error) {
       console.error('Bildirim işaretlenemedi:', error);
+    }
+  };
+
+  const handleItemClick = (notification) => {
+    if (notification.eventId) {
+      navigate(`/events/${notification.eventId}`);
     }
   };
 
@@ -168,6 +177,7 @@ const Notifications = () => {
                 <Fade in key={notification.id}>
                   <Box>
                     <ListItem
+                      onClick={() => handleItemClick(notification)}
                       sx={{
                         p: 3,
                         transition: 'all 0.2s',
@@ -236,7 +246,7 @@ const Notifications = () => {
                       />
                       <IconButton
                         edge="end"
-                        onClick={() => handleNotificationClick(notification)}
+                        onClick={(e) => handleNotificationClick(notification, e)}
                         sx={{ 
                           color: 'rgba(0, 0, 0, 0.54)',
                           '&:hover': {
