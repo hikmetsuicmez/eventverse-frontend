@@ -23,6 +23,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import AddIcon from '@mui/icons-material/Add';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import PersonIcon from '@mui/icons-material/Person';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { alpha } from '@mui/material/styles';
 import NotificationService from '../services/notification.service';
 import { notificationEvents } from '../utils/notificationEvents';
@@ -298,6 +299,10 @@ const Navbar = () => {
                 <MenuItem component={Link} to="/create-event">
                   <AddIcon sx={{ color: '#90caf9' }} />
                   Etkinlik Oluştur
+                </MenuItem>
+                <MenuItem component={Link} to="/settings">
+                  <SettingsIcon sx={{ color: '#90caf9' }} />
+                  Ayarlar
                 </MenuItem>
                 <Divider sx={{ my: 1, borderColor: 'rgba(255,255,255,0.1)' }} />
                 <MenuItem onClick={handleLogout}>

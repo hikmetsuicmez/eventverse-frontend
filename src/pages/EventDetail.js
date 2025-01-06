@@ -18,7 +18,10 @@ import {
     ListItem,
     ListItemAvatar,
     ListItemText,
-    ListItemSecondary
+    ListItemSecondary,
+    TextField,
+    Card,
+    CardContent
 } from '@mui/material';
 import {
     LocationOn,
@@ -31,7 +34,11 @@ import {
     FavoriteBorder,
     Warning,
     Check,
-    Close
+    Close,
+    Forum,
+    Send,
+    Reply,
+    ChatBubbleOutline
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale/tr';
@@ -42,6 +49,9 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Link } from 'react-router-dom';
 import FavoriteService from '../services/favorite.service';
+import CommentService from '../services/comment.service';
+import ReplyService from '../services/reply.service';
+import CommentSection from '../components/CommentSection';
 
 // Leaflet varsayılan ikonunu düzeltmek için
 delete L.Icon.Default.prototype._getIconUrl;
@@ -496,6 +506,10 @@ const EventDetail = () => {
                                         </Typography>
                                     )}
                                 </Box>
+                            </Box>
+
+                            <Box sx={{ mt: 3 }}>
+                                <CommentSection eventId={event.id} currentUser={user} />
                             </Box>
                         </Paper>
                     </Grid>
