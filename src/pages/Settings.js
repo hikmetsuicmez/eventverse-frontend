@@ -1,17 +1,23 @@
 import React, { useState } from 'react';
 import {
   Container,
-  Paper,
   Typography,
-  Box,
+  Paper,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
   ListItemButton,
+  Box,
   Switch,
   Divider,
-  Alert
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField
 } from '@mui/material';
 import {
   Notifications as NotificationsIcon,
@@ -21,10 +27,13 @@ import {
   VolumeUp as VolumeUpIcon,
   DeleteForever as DeleteForeverIcon
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import UserService from '../services/user.service';
 
 const Settings = () => {
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [notifications, setNotifications] = useState({
     email: true,
     push: true,
@@ -32,12 +41,36 @@ const Settings = () => {
   });
   const [darkMode, setDarkMode] = useState(false);
   const [sound, setSound] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleNotificationChange = (type) => {
     setNotifications(prev => ({
       ...prev,
       [type]: !prev[type]
     }));
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      await UserService.deleteAccount(password);
+      logout();
+      navigate('/');
+    } catch (error) {
+      if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else if (error.response?.data?.error) {
+        setError(error.response.data.error);
+      } else {
+        setError('Hesap silinirken bir hata oluştu');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -185,6 +218,7 @@ const Settings = () => {
 
           {/* Hesap Silme */}
           <ListItemButton 
+            onClick={() => setDeleteDialogOpen(true)}
             sx={{ 
               color: '#ff1744',
               '&:hover': {
@@ -216,6 +250,70 @@ const Settings = () => {
       >
         Ayarlarınızdaki değişiklikler otomatik olarak kaydedilir.
       </Alert>
+
+      {/* Hesap Silme Dialog */}
+      <Dialog 
+        open={deleteDialogOpen} 
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setPassword('');
+          setError('');
+        }}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            maxWidth: 400
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: '#ff1744' }}>
+          Hesabı Sil
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+          </Typography>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+          <TextField
+            fullWidth
+            type="password"
+            label="Şifrenizi Girin"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            error={!!error}
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button 
+            onClick={() => {
+              setDeleteDialogOpen(false);
+              setPassword('');
+              setError('');
+            }}
+            sx={{ color: 'text.secondary' }}
+          >
+            İptal
+          </Button>
+          <Button
+            onClick={handleDeleteAccount}
+            disabled={!password || loading}
+            sx={{
+              bgcolor: '#ff1744',
+              color: 'white',
+              '&:hover': {
+                bgcolor: '#d50000'
+              }
+            }}
+          >
+            {loading ? 'Siliniyor...' : 'Hesabı Sil'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

@@ -238,13 +238,14 @@ const EventDetail = () => {
             setError('');
             setSuccessMessage('');
 
-            await EventService.joinEvent(id);
-            setSuccessMessage('Etkinliğe başarıyla katıldınız!');
+            const response = await EventService.joinEvent(id);
+            setParticipationStatus('PENDING');
+            setSuccessMessage('Etkinliğe katılım talebiniz alındı. Organizatör onayı bekleniyor.');
             await fetchEventDetails(); // Etkinlik detaylarını güncelle
         } catch (error) {
             console.error('Etkinliğe katılırken hata:', error);
-            if (error.response?.status === 400) {
-                setError('Bu etkinliğe zaten katıldınız.');
+            if (error.message) {
+                setError(error.message);
             } else {
                 setError('Etkinliğe katılırken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
             }

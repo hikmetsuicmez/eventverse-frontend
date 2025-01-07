@@ -45,6 +45,20 @@ const UserService = {
       console.error('Update profile picture error:', error);
       throw error;
     }
+  },
+
+  deleteAccount: async (password) => {
+    try {
+      const response = await api.delete('/api/v1/users', {
+        data: {
+          password: password
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Delete account error:', error);
+      throw error;
+    }
   }
 };
 
