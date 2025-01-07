@@ -37,12 +37,15 @@ import {
   Favorite as FavoriteIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
-import { tr } from 'date-fns/locale/tr';
+import { tr } from 'date-fns/locale';
 import { useAuth } from '../context/AuthContext';
 import EventService from '../services/event.service';
 import UserService from '../services/user.service';
 import { Link } from 'react-router-dom';
 import FavoriteService from '../services/favorite.service';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 const Profile = () => {
   const { user: authUser, updateUser } = useAuth();
@@ -58,7 +61,7 @@ const Profile = () => {
     lastName: '',
     email: '',
     phoneNumber: '',
-    bio: ''
+    birthDate: null
   });
   const [imageUploadDialog, setImageUploadDialog] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -75,13 +78,14 @@ const Profile = () => {
     try {
       const response = await UserService.getProfile();
       if (response && response.data) {
+        console.log('Backend doğum tarihi:', response.data.firstName);
         setProfileData(response.data);
         setEditData({
           firstName: response.data.firstName || '',
           lastName: response.data.lastName || '',
           email: response.data.email || '',
           phoneNumber: response.data.phoneNumber || '',
-          bio: response.data.bio || ''
+          birthDate: response.data.birthDate || ''
         });
       }
     } catch (error) {
@@ -195,9 +199,13 @@ const Profile = () => {
 
   const formatDate = (dateString) => {
     try {
-      return format(new Date(dateString), 'dd MMMM yyyy', { locale: tr });
-    } catch {
-      return dateString;
+      if (!dateString) return 'Doğum tarihi belirtilmemiş';
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Doğum tarihi belirtilmemiş';
+      return format(date, 'dd/MM/yyyy', { locale: tr });
+    } catch (error) {
+      console.error('Tarih formatlanırken hata:', error);
+      return 'Geçersiz tarih';
     }
   };
 
@@ -288,9 +296,12 @@ const Profile = () => {
                 <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a237e', mb: 1 }}>
                   {profileData?.firstName} {profileData?.lastName}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  {profileData?.bio || 'Henüz bir bio eklenmemiş'}
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+                  <CalendarMonth sx={{ color: '#1a237e', mr: 1, fontSize: 20 }} />
+                  <Typography variant="body2" color="text.secondary">
+                    {profileData?.birthDate || 'Doğum tarihi belirtilmemiş'}
+                  </Typography>
+                </Box>
                 <Button
                   startIcon={<EditIcon />}
                   onClick={handleEditDialogOpen}
@@ -678,15 +689,21 @@ const Profile = () => {
               />
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Bio"
-                value={editData.bio}
-                onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
-                variant="outlined"
-                multiline
-                rows={3}
-              />
+              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={tr}>
+                <DatePicker
+                  label="Doğum Tarihi"
+                  value={editData.birthDate}
+                  onChange={(date) => setEditData({ ...editData, birthDate: date })}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      variant: "outlined"
+                    }
+                  }}
+                  maxDate={new Date()}
+                  minDate={new Date(1900, 0, 1)}
+                />
+              </LocalizationProvider>
             </Grid>
           </Grid>
         </DialogContent>

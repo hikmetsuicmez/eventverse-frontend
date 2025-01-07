@@ -16,6 +16,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers';
+import { tr } from 'date-fns/locale';
 
 const getPasswordErrors = (password) => {
   const errors = [];
@@ -68,7 +72,11 @@ const validationSchema = Yup.object({
     .matches(/^[0-9]{10}$/, 'Telefon numarası 10 haneli olmalıdır'),
   address: Yup.string()
     .required('Adres boş olamaz')
-    .max(200, 'Adres en fazla 200 karakter olabilir')
+    .max(200, 'Adres en fazla 200 karakter olabilir'),
+  birthDate: Yup.date()
+    .required('Doğum tarihi boş olamaz')
+    .max(new Date(), 'Doğum tarihi bugünden büyük olamaz')
+    .min(new Date(1900, 0, 1), 'Geçerli bir doğum tarihi giriniz')
 });
 
 const Register = () => {
@@ -85,44 +93,42 @@ const Register = () => {
       firstName: '',
       lastName: '',
       phoneNumber: '',
-      address: ''
+      address: '',
+      birthDate: null
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
       try {
         const formattedValues = {
           ...values,
-          phoneNumber: values.phoneNumber.startsWith('+90') ? values.phoneNumber : '+90' + values.phoneNumber
+          phoneNumber: values.phoneNumber.startsWith('+90') ? values.phoneNumber : '+90' + values.phoneNumber,
+          birthDate: values.birthDate ? values.birthDate.toISOString().split('T')[0] : null
         };
-
         console.log('Form verileri:', formattedValues);
-
         await register(formattedValues);
         toast.success('Kayıt başarılı! Giriş yapabilirsiniz.');
         navigate('/login');
       } catch (error) {
         console.error('Form gönderim hatası:', error);
-        
         const errorMessage = error.response?.data?.message 
           || error.response?.data?.error 
           || error.message 
           || 'Kayıt sırasında bir hata oluştu.';
-        
         toast.error(errorMessage);
       }
     },
   });
-
-  useEffect(() => {
-    const errors = getPasswordErrors(formik.values.password);
-    setPasswordErrors(errors);
-  }, [formik.values.password]);
 
   const handlePhoneChange = (e) => {
     let value = e.target.value.replace(/\D/g, '');
     if (value.length > 10) value = value.slice(0, 10);
     formik.setFieldValue('phoneNumber', value);
   };
+
+  useEffect(() => {
+    const errors = getPasswordErrors(formik.values.password);
+    setPasswordErrors(errors);
+  }, [formik.values.password]);
 
   return (
     <Box
@@ -305,6 +311,26 @@ const Register = () => {
               sx={{ mb: 2 }}
               disabled={formik.isSubmitting}
             />
+
+            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={tr}>
+              <DatePicker
+                label="Doğum Tarihi"
+                value={formik.values.birthDate}
+                onChange={(date) => formik.setFieldValue('birthDate', date)}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    error: formik.touched.birthDate && Boolean(formik.errors.birthDate),
+                    helperText: formik.touched.birthDate && formik.errors.birthDate,
+                    sx: { mb: 2 },
+                    disabled: formik.isSubmitting
+                  }
+                }}
+                maxDate={new Date()}
+                minDate={new Date(1900, 0, 1)}
+                disabled={formik.isSubmitting}
+              />
+            </LocalizationProvider>
 
             <Button
               type="submit"

@@ -41,7 +41,7 @@ import {
     ChatBubbleOutline
 } from '@mui/icons-material';
 import { format } from 'date-fns';
-import { tr } from 'date-fns/locale/tr';
+import { tr } from 'date-fns/locale';
 import EventService from '../services/event.service';
 import { useAuth } from '../context/AuthContext';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';

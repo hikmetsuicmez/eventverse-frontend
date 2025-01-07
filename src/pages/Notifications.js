@@ -24,7 +24,7 @@ import {
   Circle as CircleIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
-import { tr } from 'date-fns/locale/tr';
+import { tr } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import NotificationService from '../services/notification.service';
 import { notificationEvents } from '../utils/notificationEvents';

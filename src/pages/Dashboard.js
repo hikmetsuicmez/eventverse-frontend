@@ -7,7 +7,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useNavigate, Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { tr } from 'date-fns/locale/tr';
+import { tr } from 'date-fns/locale';
 
 // Leaflet varsayılan ikonunu düzeltmek için
 delete L.Icon.Default.prototype._getIconUrl;
