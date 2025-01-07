@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Typography, Grid, Paper, Box, Card, CardContent, Button, IconButton, Divider, CircularProgress, Fab, Avatar, Tooltip } from '@mui/material';
-import { EventAvailable, People, LocationOn, CalendarMonth, AccessTime, Category, Add, FilterList } from '@mui/icons-material';
+import { EventAvailable, People, LocationOn, CalendarMonth, AccessTime, Category, Add, FilterList, Warning, AttachMoney } from '@mui/icons-material';
 import EventService from '../services/event.service';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -97,7 +97,10 @@ const EventCard = ({ event }) => {
           {event?.date ? new Date(event.date).getDate() : '--'}
         </Typography>
         <Typography variant="h6" sx={{ color: 'white', fontWeight: 500, textTransform: 'uppercase' }}>
-          TEM
+          {event?.date ? format(new Date(event.date), 'MMM', { locale: tr }) : ''}
+        </Typography>
+        <Typography variant="h6" sx={{ color: 'white', mt: 1, fontWeight: 600 }}>
+          {event?.eventTime || '--:--'}
         </Typography>
       </Box>
 
@@ -123,6 +126,21 @@ const EventCard = ({ event }) => {
                 <Category sx={{ fontSize: 16, color: '#3F51B5' }} />
                 <Typography sx={{ color: '#3F51B5', fontWeight: 500 }}>
                   {event?.category || 'Kategori'}
+                </Typography>
+              </Box>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 0.5,
+                bgcolor: event?.paid ? 'rgba(245, 124, 0, 0.1)' : 'rgba(76, 175, 80, 0.1)',
+                px: 1.5,
+                py: 0.5,
+                borderRadius: '8px',
+                fontSize: '0.875rem'
+              }}>
+                <AttachMoney sx={{ fontSize: 16, color: event?.paid ? '#F57C00' : '#4CAF50' }} />
+                <Typography sx={{ color: event?.paid ? '#F57C00' : '#4CAF50', fontWeight: 500 }}>
+                  {event?.paid ? 'Ücretli' : 'Ücretsiz'}
                 </Typography>
               </Box>
               <Box sx={{ 
@@ -177,7 +195,7 @@ const EventCard = ({ event }) => {
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto' }}>
           <Box sx={{ display: 'flex', gap: 1 }}>
-            {event?.ageLimit && (
+            {event?.ageLimit > 0 && (
               <Box sx={{ 
                 bgcolor: '#F57C00',
                 color: 'white',
@@ -232,6 +250,7 @@ const EventCard = ({ event }) => {
 
 const MapComponent = ({ events }) => {
   const mapRef = useRef(null);
+  const navigate = useNavigate();
   const center = [41.0082, 28.9784]; // İstanbul koordinatları
 
   useEffect(() => {
@@ -256,12 +275,72 @@ const MapComponent = ({ events }) => {
       // Markerları ekle
       events.forEach((event) => {
         if (event?.latitude && event?.longitude) {
+          const popupContent = document.createElement('div');
+          popupContent.className = 'custom-popup';
+          popupContent.innerHTML = `
+            <div style="
+              font-family: Arial, sans-serif;
+              padding: 10px;
+              max-width: 250px;
+            ">
+              <h3 style="
+                margin: 0 0 8px 0;
+                color: #1a237e;
+                font-size: 16px;
+                font-weight: 600;
+              ">${event.title}</h3>
+              
+              <div style="
+                display: flex;
+                align-items: center;
+                margin-bottom: 6px;
+                color: #666;
+                font-size: 13px;
+              ">
+                <span style="
+                  background: rgba(25, 118, 210, 0.1);
+                  color: #1976d2;
+                  padding: 4px 8px;
+                  border-radius: 4px;
+                  margin-right: 8px;
+                ">${new Date(event.date).toLocaleDateString('tr-TR')}</span>
+                <span style="
+                  background: rgba(25, 118, 210, 0.1);
+                  color: #1976d2;
+                  padding: 4px 8px;
+                  border-radius: 4px;
+                ">${event.eventTime || 'Saat belirtilmemiş'}</span>
+              </div>
+              
+              <div style="
+                margin-bottom: 8px;
+                color: #666;
+                font-size: 13px;
+              ">${event.location}</div>
+              
+              <button 
+                onclick="window.location.href='/events/${event.id}'"
+                style="
+                  background: #1a237e;
+                  color: white;
+                  border: none;
+                  padding: 8px 16px;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  width: 100%;
+                  font-size: 13px;
+                  transition: background-color 0.2s;
+                "
+                onmouseover="this.style.backgroundColor='#0d47a1'"
+                onmouseout="this.style.backgroundColor='#1a237e'"
+              >
+                Detayları Gör
+              </button>
+            </div>
+          `;
+
           L.marker([parseFloat(event.latitude), parseFloat(event.longitude)], { icon: defaultIcon })
-            .bindPopup(`
-              <h3>${event.title}</h3>
-              <p>${event.location}</p>
-              <p>${new Date(event.date).toLocaleDateString('tr-TR')}</p>
-            `)
+            .bindPopup(popupContent)
             .addTo(mapRef.current);
         }
       });
@@ -273,7 +352,7 @@ const MapComponent = ({ events }) => {
         mapRef.current = null;
       }
     };
-  }, [events]);
+  }, [events, navigate]);
 
   return <div id="map" style={{ height: '100%', width: '100%', borderRadius: '16px' }} />;
 };

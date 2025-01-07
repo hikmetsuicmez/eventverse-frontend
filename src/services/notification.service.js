@@ -34,6 +34,21 @@ const NotificationService = {
       console.error('Mark notification as read error:', error);
       throw error;
     }
+  },
+
+  markAllAsRead: async () => {
+    try {
+      const response = await api.patch('/api/v1/notifications/read-all', {}, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      return response;
+    } catch (error) {
+      console.error('Mark all notifications as read error:', error);
+      throw error;
+    }
   }
 };
 

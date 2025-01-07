@@ -115,6 +115,7 @@ const EventForm = () => {
     title: '',
     description: '',
     date: '',
+    eventTime: '',
     location: '',
     address: '',
     maxParticipants: 1,
@@ -255,6 +256,22 @@ const EventForm = () => {
                 onChange={handleChange}
                 InputLabelProps={{ shrink: true }}
                 required
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Saat"
+                name="eventTime"
+                type="time"
+                value={formData.eventTime}
+                onChange={handleChange}
+                InputLabelProps={{ shrink: true }}
+                required
+                inputProps={{
+                  step: 300 // 5 dakika
+                }}
               />
             </Grid>
 

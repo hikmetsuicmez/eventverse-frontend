@@ -38,19 +38,16 @@ import {
     Forum,
     Send,
     Reply,
-    ChatBubbleOutline
+    ChatBubbleOutline,
+    CalendarMonth
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import EventService from '../services/event.service';
 import { useAuth } from '../context/AuthContext';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Link } from 'react-router-dom';
 import FavoriteService from '../services/favorite.service';
-import CommentService from '../services/comment.service';
-import ReplyService from '../services/reply.service';
 import CommentSection from '../components/CommentSection';
 
 // Leaflet varsayılan ikonunu düzeltmek için
@@ -78,7 +75,6 @@ const EventMap = ({ event }) => {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(mapRef.current);
 
-            // Marker ikonunu ayarla
             const defaultIcon = L.icon({
                 iconUrl: require('leaflet/dist/images/marker-icon.png'),
                 iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
@@ -89,7 +85,6 @@ const EventMap = ({ event }) => {
                 shadowSize: [41, 41]
             });
 
-            // Marker ekle
             L.marker(position, { icon: defaultIcon })
                 .bindPopup(`
           <strong>${event.title}</strong><br/>
@@ -140,12 +135,12 @@ const EventDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isLiked, setIsLiked] = useState(false);
+    const [favoriteId, setFavoriteId] = useState(null);
+    const [favoriteLoading, setFavoriteLoading] = useState(false);
     const [joinLoading, setJoinLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
     const [participationStatus, setParticipationStatus] = useState(null);
     const [participantActionLoading, setParticipantActionLoading] = useState(false);
-    const [favoriteId, setFavoriteId] = useState(null);
-    const [favoriteLoading, setFavoriteLoading] = useState(false);
 
     const fetchEventDetails = async () => {
         try {
@@ -154,7 +149,6 @@ const EventDetail = () => {
             console.log('Event details response:', response.data);
             setEvent(response.data);
 
-            // Debug için katılımcıları ve mevcut kullanıcıyı yazdır
             console.log('Participants:', response.data.participants);
             console.log('Current user:', user);
 
@@ -178,27 +172,28 @@ const EventDetail = () => {
         fetchEventDetails();
     }, [id, user?.id]);
 
-    const checkFavoriteStatus = async () => {
-        if (!user) return;
-        
-        try {
-            const favorite = await FavoriteService.getFavoriteStatus(id);
-            if (favorite) {
-                setIsLiked(true);
-                setFavoriteId(favorite.id);
-            } else {
+    // Favori durumunu kontrol et
+    useEffect(() => {
+        const checkFavoriteStatus = async () => {
+            if (!user || !id) return;
+            
+            try {
+                const response = await FavoriteService.getFavoriteStatus(id);
+                if (response && response.data) {
+                    setIsLiked(true);
+                    setFavoriteId(response.data.id);
+                } else {
+                    setIsLiked(false);
+                    setFavoriteId(null);
+                }
+            } catch (error) {
+                console.error('Favori durumu kontrol edilirken hata:', error);
                 setIsLiked(false);
                 setFavoriteId(null);
             }
-        } catch (error) {
-            console.error('Favori durumu kontrol edilirken hata:', error);
-        }
-    };
+        };
 
-    useEffect(() => {
-        if (user && id) {
-            checkFavoriteStatus();
-        }
+        checkFavoriteStatus();
     }, [id, user]);
 
     const handleFavoriteClick = async () => {
@@ -211,22 +206,22 @@ const EventDetail = () => {
             setFavoriteLoading(true);
             setError('');
 
-            if (isLiked) {
+            if (isLiked && favoriteId) {
                 await FavoriteService.deleteFavorite(favoriteId);
-                setFavoriteId(null);
                 setIsLiked(false);
+                setFavoriteId(null);
+                setSuccessMessage('Etkinlik favorilerden kaldırıldı');
             } else {
-                const favorite = await FavoriteService.addFavorite(id);
-                setFavoriteId(favorite.id);
-                setIsLiked(true);
+                const response = await FavoriteService.addFavorite(id);
+                if (response && response.data) {
+                    setFavoriteId(response.data.id);
+                    setIsLiked(true);
+                    setSuccessMessage('Etkinlik favorilere eklendi');
+                }
             }
         } catch (error) {
             console.error('Favori işlemi sırasında hata:', error);
-            if (error.response?.data?.message) {
-                setError(error.response.data.message);
-            } else {
-                setError('Favori işlemi sırasında bir hata oluştu.');
-            }
+            setError('Favori işlemi sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
         } finally {
             setFavoriteLoading(false);
         }
@@ -330,7 +325,7 @@ const EventDetail = () => {
                     </Alert>
                 )}
                 {successMessage && (
-                    <Alert severity="success" sx={{ mb: 2 }}>
+                    <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
                         {successMessage}
                     </Alert>
                 )}
@@ -370,12 +365,13 @@ const EventDetail = () => {
                                     }}
                                 >
                                     <IconButton
-                                        sx={{
-                                            bgcolor: 'white',
-                                            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' }
-                                        }}
                                         onClick={handleFavoriteClick}
                                         disabled={favoriteLoading}
+                                        sx={{
+                                            bgcolor: 'white',
+                                            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' },
+                                            '&.Mui-disabled': { bgcolor: 'rgba(255, 255, 255, 0.7)' }
+                                        }}
                                     >
                                         {favoriteLoading ? (
                                             <CircularProgress size={20} sx={{ color: '#e91e63' }} />
@@ -403,8 +399,8 @@ const EventDetail = () => {
 
                             <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
                                 <Chip
-                                    icon={<CalendarToday sx={{ fontSize: 18 }} />}
-                                    label={formatDate(event.date)}
+                                    icon={<CalendarMonth sx={{ fontSize: 18 }} />}
+                                    label={`${formatDate(event.date)} ${event.eventTime || ''}`}
                                     sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}
                                 />
                                 <Chip
@@ -417,20 +413,26 @@ const EventDetail = () => {
                                     label={`${event.maxParticipants} Katılımcı`}
                                     sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}
                                 />
-                                {event.isPaid && (
-                                    <Chip
-                                        icon={<AttachMoney sx={{ fontSize: 18 }} />}
-                                        label={`${event.price} TL`}
-                                        sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}
-                                    />
-                                )}
-                                {event.hasAgeLimit && (
+                                {event.hasAgeLimit && event.ageLimit > 0 && (
                                     <Chip
                                         icon={<Warning sx={{ fontSize: 18 }} />}
                                         label={`+${event.ageLimit} Yaş`}
                                         sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}
                                     />
                                 )}
+                            </Box>
+
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <CalendarMonth sx={{ color: '#1a237e', mr: 1 }} />
+                                <Typography variant="body1">
+                                    {event?.date ? format(new Date(event.date), 'dd MMMM yyyy', { locale: tr }) : 'Tarih belirtilmemiş'}
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <AccessTime sx={{ color: '#1a237e', mr: 1 }} />
+                                <Typography variant="body1">
+                                    {event?.eventTime || 'Saat belirtilmemiş'}
+                                </Typography>
                             </Box>
 
                             <Typography variant="h6" sx={{ color: '#1a237e', mb: 2, fontWeight: 600 }}>
@@ -478,24 +480,52 @@ const EventDetail = () => {
                                         Organizatör Onayı Bekleniyor
                                     </Button>
                                 ) : (
-                                    <Button
-                                        variant="contained"
-                                        size="large"
-                                        onClick={handleJoinEvent}
-                                        disabled={joinLoading}
-                                        sx={{
-                                            bgcolor: '#1a237e',
-                                            '&:hover': { bgcolor: '#0d47a1' },
-                                            borderRadius: '8px',
-                                            px: 4
-                                        }}
-                                    >
-                                        {joinLoading ? (
-                                            <CircularProgress size={24} sx={{ color: 'white' }} />
-                                        ) : (
-                                            'Katıl'
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                        <Button
+                                            variant="contained"
+                                            size="large"
+                                            onClick={handleJoinEvent}
+                                            disabled={joinLoading}
+                                            sx={{
+                                                bgcolor: '#1a237e',
+                                                '&:hover': { bgcolor: '#0d47a1' },
+                                                borderRadius: '8px',
+                                                px: 4
+                                            }}
+                                        >
+                                            {joinLoading ? (
+                                                <CircularProgress size={24} sx={{ color: 'white' }} />
+                                            ) : (
+                                                'Katıl'
+                                            )}
+                                        </Button>
+                                        {event.paid && (
+                                            <Box
+                                                sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 1,
+                                                    bgcolor: 'rgba(58, 136, 214, 0.08)',
+                                                    color: '#3083D5',
+                                                    py: 1.5,
+                                                    px: 3,
+                                                    borderRadius: '12px',
+                                                    fontWeight: 600,
+                                                    fontSize: '1.1rem',
+                                                    boxShadow: '0 2px 8px rgba(68, 145, 225, 0.15)',
+                                                    border: '1px solid rgba(58, 136, 214, 0.2)',
+                                                    transition: 'all 0.2s ease',
+                                                    '&:hover': {
+                                                        transform: 'translateY(-2px)',
+                                                        boxShadow: '0 4px 12px rgba(98, 159, 234, 0.2)'
+                                                    }
+                                                }}
+                                            >
+                                                
+                                                {event.price} ₺
+                                            </Box>
                                         )}
-                                    </Button>
+                                    </Box>
                                 )}
                                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                                     <Typography variant="body2" color="text.secondary">
@@ -587,12 +617,34 @@ const EventDetail = () => {
                                     color: '#666',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    mt: 2
+                                    mt: 2,
+                                    mb: 2
                                 }}
                             >
                                 <LocationOn sx={{ fontSize: 18, mr: 1, color: '#1a237e' }} />
                                 {event.location}
                             </Typography>
+                            {event?.latitude && event?.longitude && (
+                                <Button
+                                    variant="outlined"
+                                    startIcon={<LocationOn />}
+                                    fullWidth
+                                    onClick={() => {
+                                        const url = `https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`;
+                                        window.open(url, '_blank');
+                                    }}
+                                    sx={{
+                                        borderColor: '#1a237e',
+                                        color: '#1a237e',
+                                        '&:hover': {
+                                            borderColor: '#0d47a1',
+                                            bgcolor: 'rgba(26, 35, 126, 0.04)'
+                                        }
+                                    }}
+                                >
+                                    Yol Tarifi Al
+                                </Button>
+                            )}
                         </Paper>
 
                         {/* Katılımcılar Listesi - Sadece organizatör için görünür */}

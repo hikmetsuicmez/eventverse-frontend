@@ -1,13 +1,26 @@
-// Event emitter için basit bir yapı
-const notificationEvents = {
-  listeners: new Set(),
-  emit(event) {
-    this.listeners.forEach(listener => listener(event));
-  },
-  subscribe(listener) {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
-  }
-};
+class EventEmitter {
+    constructor() {
+        this.events = {};
+    }
 
-export { notificationEvents }; 
+    on(event, callback) {
+        if (!this.events[event]) {
+            this.events[event] = [];
+        }
+        this.events[event].push(callback);
+    }
+
+    off(event, callback) {
+        if (!this.events[event]) return;
+        this.events[event] = this.events[event].filter(cb => cb !== callback);
+    }
+
+    emit(event, data) {
+        if (!this.events[event]) return;
+        this.events[event].forEach(callback => callback(data));
+    }
+}
+
+const notificationEvents = new EventEmitter();
+
+export default notificationEvents; 

@@ -46,6 +46,7 @@ import FavoriteService from '../services/favorite.service';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { useTheme } from '../context/ThemeContext';
 
 const Profile = () => {
   const { user: authUser, updateUser } = useAuth();
@@ -67,6 +68,7 @@ const Profile = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [error, setError] = useState('');
+  const { theme } = useTheme();
 
   useEffect(() => {
     fetchProfileData();
@@ -78,14 +80,14 @@ const Profile = () => {
     try {
       const response = await UserService.getProfile();
       if (response && response.data) {
-        console.log('Backend doğum tarihi:', response.data.firstName);
+        console.log('Backend doğum tarihi:', response.data.birthDate);
         setProfileData(response.data);
         setEditData({
           firstName: response.data.firstName || '',
           lastName: response.data.lastName || '',
           email: response.data.email || '',
           phoneNumber: response.data.phoneNumber || '',
-          birthDate: response.data.birthDate || ''
+          birthDate: response.data.birthDate ? new Date(response.data.birthDate) : null
         });
       }
     } catch (error) {
@@ -136,7 +138,11 @@ const Profile = () => {
   const handleEditSubmit = async () => {
     try {
       setError('');
-      const response = await UserService.updateProfile(editData);
+      const formattedData = {
+        ...editData,
+        birthDate: editData.birthDate ? format(new Date(editData.birthDate), 'yyyy-MM-dd') : null
+      };
+      const response = await UserService.updateProfile(formattedData);
       setProfileData(response.data);
       handleEditDialogClose();
     } catch (error) {
@@ -230,8 +236,8 @@ const Profile = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        bgcolor: '#001E3C',
-        pt: '84px',
+        bgcolor: '#0A1929',
+        pt: 8,
         pb: 4
       }}
     >
@@ -249,7 +255,7 @@ const Profile = () => {
               sx={{
                 p: 3,
                 borderRadius: '16px',
-                bgcolor: 'rgba(255, 255, 255, 0.95)',
+                bgcolor: theme.background.paper,
                 backdropFilter: 'blur(20px)',
                 position: 'relative'
               }}
@@ -293,12 +299,12 @@ const Profile = () => {
               </Box>
 
               <Box sx={{ textAlign: 'center', mb: 3 }}>
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a237e', mb: 1 }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: theme.text.primary, mb: 1 }}>
                   {profileData?.firstName} {profileData?.lastName}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-                  <CalendarMonth sx={{ color: '#1a237e', mr: 1, fontSize: 20 }} />
-                  <Typography variant="body2" color="text.secondary">
+                  <CalendarMonth sx={{ color: theme.text.primary, mr: 1, fontSize: 20 }} />
+                  <Typography variant="body2" color={theme.text.secondary}>
                     {profileData?.birthDate || 'Doğum tarihi belirtilmemiş'}
                   </Typography>
                 </Box>
@@ -309,10 +315,10 @@ const Profile = () => {
                   sx={{
                     borderRadius: '20px',
                     textTransform: 'none',
-                    borderColor: '#1a237e',
-                    color: '#1a237e',
+                    borderColor: theme.accent.main,
+                    color: theme.accent.main,
                     '&:hover': {
-                      borderColor: '#0d47a1',
+                      borderColor: theme.accent.dark,
                       bgcolor: 'rgba(26, 35, 126, 0.04)'
                     }
                   }}
@@ -324,25 +330,25 @@ const Profile = () => {
               <Divider sx={{ my: 3 }} />
 
               <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" sx={{ color: '#1a237e', mb: 2, fontWeight: 600 }}>
+                <Typography variant="subtitle2" sx={{ color: theme.text.primary, mb: 2, fontWeight: 600 }}>
                   İletişim Bilgileri
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <EmailIcon sx={{ color: '#1a237e', mr: 1, fontSize: 20 }} />
-                  <Typography variant="body2" color="text.secondary">
+                  <EmailIcon sx={{ color: theme.text.primary, mr: 1, fontSize: 20 }} />
+                  <Typography variant="body2" color={theme.text.secondary}>
                     {profileData?.email}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <PhoneIcon sx={{ color: '#1a237e', mr: 1, fontSize: 20 }} />
-                  <Typography variant="body2" color="text.secondary">
+                  <PhoneIcon sx={{ color: theme.text.primary, mr: 1, fontSize: 20 }} />
+                  <Typography variant="body2" color={theme.text.secondary}>
                     {profileData?.phoneNumber || 'Telefon numarası eklenmemiş'}
                   </Typography>
                 </Box>
               </Box>
 
               <Box>
-                <Typography variant="subtitle2" sx={{ color: '#1a237e', mb: 2, fontWeight: 600 }}>
+                <Typography variant="subtitle2" sx={{ color: theme.text.primary, mb: 2, fontWeight: 600 }}>
                   İstatistikler
                 </Typography>
                 <Grid container spacing={2}>
@@ -352,14 +358,14 @@ const Profile = () => {
                       sx={{
                         p: 2,
                         textAlign: 'center',
-                        bgcolor: 'rgba(26, 35, 126, 0.04)',
+                        bgcolor: theme.background.card,
                         borderRadius: '12px'
                       }}
                     >
-                      <Typography variant="h6" sx={{ color: '#1a237e', fontWeight: 600 }}>
+                      <Typography variant="h6" sx={{ color: theme.text.primary, fontWeight: 600 }}>
                         {participatedEvents.length}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" color={theme.text.secondary}>
                         Katıldığım
                       </Typography>
                     </Paper>
@@ -370,14 +376,14 @@ const Profile = () => {
                       sx={{
                         p: 2,
                         textAlign: 'center',
-                        bgcolor: 'rgba(26, 35, 126, 0.04)',
+                        bgcolor: theme.background.card,
                         borderRadius: '12px'
                       }}
                     >
-                      <Typography variant="h6" sx={{ color: '#1a237e', fontWeight: 600 }}>
+                      <Typography variant="h6" sx={{ color: theme.text.primary, fontWeight: 600 }}>
                         {createdEvents.length}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" color={theme.text.secondary}>
                         Düzenlediğim
                       </Typography>
                     </Paper>
@@ -424,7 +430,7 @@ const Profile = () => {
               sx={{
                 p: 3,
                 borderRadius: '16px',
-                bgcolor: 'rgba(255, 255, 255, 0.95)',
+                bgcolor: theme.background.paper,
                 backdropFilter: 'blur(20px)'
               }}
             >
@@ -433,8 +439,8 @@ const Profile = () => {
                 onChange={handleTabChange}
                 sx={{
                   mb: 3,
-                  '& .MuiTabs-indicator': { bgcolor: '#1a237e' },
-                  '& .MuiTab-root': { color: '#1a237e' }
+                  '& .MuiTabs-indicator': { bgcolor: theme.accent.main },
+                  '& .MuiTab-root': { color: theme.text.primary }
                 }}
               >
                 <Tab label="Katıldığım Etkinlikler" />
@@ -472,19 +478,23 @@ const Profile = () => {
                           >
                             <Box
                               sx={{
-                                width: '120px',
+                                width: '100px',
                                 bgcolor: '#0A2540',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                p: 2,
-                                color: 'white'
+                                p: 2
                               }}
                             >
-                              <CalendarMonth sx={{ fontSize: 32, mb: 1 }} />
-                              <Typography variant="caption" sx={{ textAlign: 'center' }}>
-                                {formatDate(event.startDate)}
+                              <Typography variant="h2" sx={{ color: 'white', fontWeight: 700, lineHeight: 1 }}>
+                                {event?.date ? new Date(event.date).getDate() : '--'}
+                              </Typography>
+                              <Typography variant="h6" sx={{ color: 'white', fontWeight: 500, textTransform: 'uppercase' }}>
+                                {event?.date ? format(new Date(event.date), 'MMM', { locale: tr }) : ''}
+                              </Typography>
+                              <Typography variant="h6" sx={{ color: 'white', mt: 1, fontWeight: 600 }}>
+                                {event?.eventTime || '--:--'}
                               </Typography>
                             </Box>
                             <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -563,19 +573,23 @@ const Profile = () => {
                           >
                             <Box
                               sx={{
-                                width: '120px',
+                                width: '100px',
                                 bgcolor: '#0A2540',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                p: 2,
-                                color: 'white'
+                                p: 2
                               }}
                             >
-                              <CalendarMonth sx={{ fontSize: 32, mb: 1 }} />
-                              <Typography variant="caption" sx={{ textAlign: 'center' }}>
-                                {formatDate(event.startDate)}
+                              <Typography variant="h2" sx={{ color: 'white', fontWeight: 700, lineHeight: 1 }}>
+                                {event?.date ? new Date(event.date).getDate() : '--'}
+                              </Typography>
+                              <Typography variant="h6" sx={{ color: 'white', fontWeight: 500, textTransform: 'uppercase' }}>
+                                {event?.date ? format(new Date(event.date), 'MMM', { locale: tr }) : ''}
+                              </Typography>
+                              <Typography variant="h6" sx={{ color: 'white', mt: 1, fontWeight: 600 }}>
+                                {event?.eventTime || '--:--'}
                               </Typography>
                             </Box>
                             <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -636,7 +650,7 @@ const Profile = () => {
         PaperProps={{
           sx: {
             borderRadius: '16px',
-            bgcolor: 'rgba(255, 255, 255, 0.95)',
+            bgcolor: theme.background.paper,
             backdropFilter: 'blur(20px)'
           }
         }}
@@ -740,7 +754,7 @@ const Profile = () => {
         PaperProps={{
           sx: {
             borderRadius: '16px',
-            bgcolor: 'rgba(255, 255, 255, 0.95)',
+            bgcolor: theme.background.paper,
             backdropFilter: 'blur(20px)'
           }
         }}

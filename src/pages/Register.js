@@ -71,7 +71,6 @@ const validationSchema = Yup.object({
     .required('Telefon numarası boş olamaz')
     .matches(/^[0-9]{10}$/, 'Telefon numarası 10 haneli olmalıdır'),
   address: Yup.string()
-    .required('Adres boş olamaz')
     .max(200, 'Adres en fazla 200 karakter olabilir'),
   birthDate: Yup.date()
     .required('Doğum tarihi boş olamaz')
@@ -299,7 +298,7 @@ const Register = () => {
 
             <TextField
               fullWidth
-              label="Adres"
+              label="Adres (Opsiyonel)"
               name="address"
               value={formik.values.address}
               onChange={formik.handleChange}

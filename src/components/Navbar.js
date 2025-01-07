@@ -12,7 +12,11 @@ import {
   Tooltip,
   InputBase,
   Divider,
-  Button
+  Button,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar
 } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -27,29 +31,34 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import { alpha } from '@mui/material/styles';
 import NotificationService from '../services/notification.service';
 import { notificationEvents } from '../utils/notificationEvents';
+import CalendarMonth from '@mui/icons-material/CalendarMonth';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
+  const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     const fetchNotifications = async () => {
       if (user) {
         try {
-          const response = await NotificationService.getUnreadNotifications();
-          const notifications = response.data.data || [];
-          setUnreadCount(notifications.length);
+          const unreadResponse = await NotificationService.getUnreadNotifications();
+          const unreadNotifications = unreadResponse.data.data || [];
+          setUnreadCount(unreadNotifications.length);
+          setNotifications(unreadNotifications);
         } catch (error) {
           console.error('Bildirimler alınamadı:', error);
           setUnreadCount(0);
+          setNotifications([]);
         }
       }
     };
 
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000);
+    const interval = setInterval(fetchNotifications, 3000);
 
     return () => {
       clearInterval(interval);
@@ -70,6 +79,41 @@ const Navbar = () => {
       navigate('/login');
     } catch (error) {
       console.error('Çıkış yapılırken hata:', error);
+    }
+  };
+
+  const handleNotificationClick = (event) => {
+    setNotificationAnchorEl(event.currentTarget);
+  };
+
+  const handleNotificationClose = () => {
+    setNotificationAnchorEl(null);
+  };
+
+  const handleNotificationRead = async (notificationId, eventId, notifications) => {
+    try {
+      console.log('Bildirim ID:', notificationId);
+      console.log('Etkinlik ID:', eventId);
+      await NotificationService.markAsRead(notificationId);
+      setNotifications(notifications.filter(notification => notification.id !== notificationId));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+      handleNotificationClose();
+      // Etkinlik detay sayfasına yönlendir
+      if (eventId) {
+        navigate(`/events/${eventId}`);
+      }
+    } catch (error) {
+      console.error('Bildirim okundu işaretlenirken hata:', error);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await NotificationService.markAllAsRead();
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Tüm bildirimler okundu işaretlenirken hata:', error);
     }
   };
 
@@ -199,8 +243,7 @@ const Navbar = () => {
               <Tooltip title="Bildirimler">
                 <IconButton
                   color="inherit"
-                  component={Link}
-                  to="/notifications"
+                  onClick={handleNotificationClick}
                   sx={{
                     '&:hover': {
                       bgcolor: 'rgba(255, 255, 255, 0.1)',
@@ -341,6 +384,142 @@ const Navbar = () => {
             </>
           )}
         </Box>
+
+        <Menu
+          anchorEl={notificationAnchorEl}
+          open={Boolean(notificationAnchorEl)}
+          onClose={handleNotificationClose}
+          PaperProps={{
+            sx: {
+              width: '400px',
+              maxHeight: '500px',
+              mt: 1.5,
+              backgroundColor: '#0A1929',
+              color: 'white',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              '& .MuiList-root': {
+                padding: 0,
+              },
+            },
+          }}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          <Box sx={{ 
+            p: 2, 
+            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            bgcolor: '#0A1929'
+          }}>
+            <Typography sx={{ 
+              fontWeight: 'bold',
+              fontSize: '1.1rem',
+              color: 'white'
+            }}>
+              Bildirimler
+            </Typography>
+            {unreadCount > 0 && (
+              <Typography 
+                onClick={handleMarkAllAsRead}
+                sx={{ 
+                  fontSize: '0.9rem',
+                  color: '#90caf9',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    textDecoration: 'underline'
+                  }
+                }}
+              >
+                Tümünü Okundu İşaretle
+              </Typography>
+            )}
+          </Box>
+          <List sx={{ 
+            p: 0,
+            maxHeight: '400px',
+            overflowY: 'auto',
+            '&::-webkit-scrollbar': {
+              width: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              background: 'rgba(255,255,255,0.05)',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: 'rgba(255,255,255,0.2)',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              background: 'rgba(255,255,255,0.3)',
+            },
+          }}>
+            {notifications.length === 0 ? (
+              <Box sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                py: 4,
+                color: 'rgba(255,255,255,0.7)'
+              }}>
+                <NotificationsIcon sx={{ fontSize: 48, mb: 2, color: 'rgba(255,255,255,0.3)' }} />
+                <Typography>Okunmamış bildirim bulunmuyor</Typography>
+              </Box>
+            ) : (
+              notifications.map(notification => (
+                <ListItem
+                  key={notification.id}
+                  button
+                  onClick={() => handleNotificationRead(notification.id, notification.eventId, notifications)}
+                  sx={{
+                    cursor: 'pointer',
+                    bgcolor: 'rgba(25, 118, 210, 0.08)',
+                    borderBottom: '1px solid rgba(255,255,255,0.1)',
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      bgcolor: 'rgba(144, 202, 249, 0.12)',
+                      transform: 'translateY(-2px)'
+                    },
+                    p: 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start'
+                  }}
+                >
+                  <Typography sx={{ 
+                    color: 'white',
+                    fontWeight: 500,
+                    mb: 1,
+                    fontSize: '0.95rem',
+                    lineHeight: 1.4
+                  }}>
+                    {notification.message}
+                  </Typography>
+                  <Typography sx={{ 
+                    color: 'rgba(255,255,255,0.5)',
+                    fontSize: '0.85rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}>
+                    <CalendarMonth sx={{ fontSize: 16 }} />
+                    {new Date(notification.timestamp).toLocaleString('tr-TR', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </Typography>
+                </ListItem>
+              ))
+            )}
+          </List>
+        </Menu>
       </Toolbar>
     </AppBar>
   );
