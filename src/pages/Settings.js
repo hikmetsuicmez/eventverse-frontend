@@ -74,6 +74,11 @@ const Settings = () => {
     }
   };
 
+  const handleConfirmDelete = () => {
+    setConfirmDeleteOpen(false);
+    handleDeleteAccount();
+  };
+
   return (
     <Box
       sx={{
@@ -398,7 +403,11 @@ const Settings = () => {
               İptal
             </Button>
             <Button
-              onClick={handleDeleteAccount}
+              onClick={() => {
+                if (password) {
+                  setConfirmDeleteOpen(true);
+                }
+              }}
               disabled={!password || loading}
               sx={{
                 bgcolor: '#ff1744',
@@ -416,6 +425,49 @@ const Settings = () => {
             </Button>
           </DialogActions>
           
+        </Dialog>
+
+        {/* Son Onay Dialog */}
+        <Dialog
+          open={confirmDeleteOpen}
+          onClose={() => setConfirmDeleteOpen(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: 2,
+              maxWidth: 400,
+              backgroundColor: '#0A1929',
+              color: 'white'
+            }
+          }}
+        >
+          <DialogTitle sx={{ color: '#ff1744' }}>
+            Son Onay
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body1" sx={{ color: 'white' }}>
+              Bu işlem geri alınamaz ve tüm verileriniz kalıcı olarak silinecektir. Devam etmek istediğinizden emin misiniz?
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: 2 }}>
+            <Button 
+              onClick={() => setConfirmDeleteOpen(false)}
+              sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
+            >
+              Vazgeç
+            </Button>
+            <Button
+              onClick={handleConfirmDelete}
+              sx={{
+                bgcolor: '#ff1744',
+                color: 'white',
+                '&:hover': {
+                  bgcolor: '#d50000'
+                }
+              }}
+            >
+              Evet, Hesabımı Sil
+            </Button>
+          </DialogActions>
         </Dialog>
       </Container>
     </Box>

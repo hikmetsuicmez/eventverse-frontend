@@ -493,9 +493,20 @@ const Dashboard = () => {
                 <Typography variant="h4" sx={{ color: 'white', fontWeight: 600 }}>
                   Tüm Etkinlikler
                 </Typography>
-                <IconButton sx={{ color: 'white' }}>
-                  <FilterList />
-                </IconButton>
+                <Button
+                  component={Link}
+                  to="/events"
+                  startIcon={<FilterList />}
+                  sx={{ 
+                    color: 'white',
+                    bgcolor: 'rgba(255, 255, 255, 0.1)',
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 255, 255, 0.2)'
+                    }
+                  }}
+                >
+                  Filtreleme
+                </Button>
               </Box>
               {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>

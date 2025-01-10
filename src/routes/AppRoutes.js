@@ -13,6 +13,7 @@ import Navbar from '../components/Navbar';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Settings from '../pages/Settings';
+import Events from '../pages/Events';
 
 // Korumalı Route bileşeni
 const ProtectedRoute = ({ children }) => {
@@ -119,6 +120,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <Settings />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/events" 
+          element={
+            <ProtectedRoute>
+              <Events />
             </ProtectedRoute>
           }
         />
