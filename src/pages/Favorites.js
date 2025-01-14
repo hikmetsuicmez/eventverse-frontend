@@ -70,6 +70,34 @@ const Favorites = () => {
     }
   };
 
+  const getImageUrl = (event) => {
+    if (event?.imageUrl) {
+        return event.imageUrl;
+    }
+    return getDefaultImage(event?.category);
+  };
+
+  const getDefaultImage = (category) => {
+    switch (category?.toLowerCase()) {
+        case 'eğitim':
+            return '/images/categories/education.jpg';
+        case 'spor':
+            return '/images/categories/sports.jpg';
+        case 'müzik':
+            return '/images/categories/music.jpg';
+        case 'sanat':
+            return '/images/categories/art.jpg';
+        case 'teknoloji':
+            return '/images/categories/technology.jpg';
+        case 'iş':
+            return '/images/categories/business.jpg';
+        case 'sağlık':
+            return '/images/categories/health.jpg';
+        default:
+            return '/images/categories/default.jpg';
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -167,7 +195,7 @@ const Favorites = () => {
                   >
                     <Box
                       component="img"
-                      src={favorite.eventImage || '/event-placeholder.jpg'}
+                      src={favorite.eventImageUrl || '/images/categories/default.jpg'}
                       alt={favorite.eventTitle}
                       sx={{
                         position: 'absolute',
