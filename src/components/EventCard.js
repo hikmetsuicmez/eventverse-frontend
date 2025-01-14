@@ -5,158 +5,173 @@ import {
   CardMedia,
   Typography,
   Box,
-  Button,
+  Chip,
   Avatar,
-  Tooltip,
-  Chip
+  Button,
+  CardActions,
+  Tooltip
 } from '@mui/material';
-import { LocationOn, Category, AttachMoney } from '@mui/icons-material';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
+import {
+  LocationOn,
+  Category,
+  AttachMoney,
+  Person,
+  CalendarToday
+} from '@mui/icons-material';
 
 const EventCard = ({ event }) => {
+  const navigate = useNavigate();
+
+  const formatPrice = (price) => {
+    if (price === 0) return 'Ücretsiz';
+    return `${price} ₺`;
+  };
+
+  const getDefaultImage = (category) => {
+    switch (category?.toLowerCase()) {
+      case 'eğitim':
+        return '/images/categories/education.jpg';
+      case 'spor':
+        return '/images/categories/sports.jpg';
+      case 'müzik':
+        return '/images/categories/music.jpg';
+      case 'sanat':
+        return '/images/categories/art.jpg';
+      case 'teknoloji':
+        return '/images/categories/technology.jpg';
+      case 'iş':
+        return '/images/categories/business.jpg';
+      case 'sağlık':
+        return '/images/categories/health.jpg';
+      default:
+        return '/images/categories/default.jpg';
+    }
+  };
+
+  const getImageUrl = (event) => {
+    if (event?.imageUrl) {
+        return event.imageUrl;
+    }
+    return getDefaultImage(event?.category);
+  };
+
   return (
     <Card 
       sx={{ 
-        height: '100%',
-        display: 'flex',
+        height: '100%', 
+        display: 'flex', 
         flexDirection: 'column',
-        borderRadius: '16px',
-        overflow: 'hidden',
-        transition: 'transform 0.2s ease-in-out',
+        transition: 'transform 0.2s',
         '&:hover': {
-          transform: 'translateY(-5px)'
+          transform: 'scale(1.02)',
+          boxShadow: 6
         }
       }}
     >
       <CardMedia
         component="img"
         height="200"
-        image={event.eventImage || 'https://source.unsplash.com/random/?event'}
+        image={getImageUrl(event)}
         alt={event.title}
         sx={{ objectFit: 'cover' }}
       />
       
-      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a237e', mb: 1 }}>
-            {event.title}
-          </Typography>
-          <Tooltip title={`Organizatör: ${event?.organizer?.firstName || ''} ${event?.organizer?.lastName || ''}`}>
-            <Avatar
-              src={event?.organizer?.profilePicture}
-              alt={`${event?.organizer?.firstName || ''} ${event?.organizer?.lastName || ''}`}
-              sx={{ 
-                width: 32, 
-                height: 32,
-                border: '2px solid #4051B5',
-                ml: 1,
-                cursor: 'pointer'
-              }}
-            />
-          </Tooltip>
-        </Box>
-
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-          <Chip
-            icon={<Category sx={{ fontSize: 16 }} />}
-            label={event.category}
-            size="small"
-            sx={{ 
-              bgcolor: 'rgba(63, 81, 181, 0.1)',
-              color: '#3F51B5',
-              '& .MuiChip-icon': { color: '#3F51B5' }
-            }}
-          />
-          <Chip
-            icon={<LocationOn sx={{ fontSize: 16 }} />}
-            label={event.location}
-            size="small"
-            sx={{ 
-              bgcolor: 'rgba(63, 81, 181, 0.1)',
-              color: '#3F51B5',
-              '& .MuiChip-icon': { color: '#3F51B5' }
-            }}
-          />
-          {event.isPaid && (
-            <Chip
-              icon={<AttachMoney sx={{ fontSize: 16 }} />}
-              label={`${event.price} ₺`}
-              size="small"
-              sx={{ 
-                bgcolor: 'rgba(245, 124, 0, 0.1)',
-                color: '#F57C00',
-                '& .MuiChip-icon': { color: '#F57C00' }
-              }}
-            />
-          )}
-        </Box>
-
+      <CardContent sx={{ flexGrow: 1, pb: 1 }}>
         <Typography 
-          variant="body2" 
-          color="text.secondary" 
+          variant="h6" 
+          component="div" 
+          gutterBottom 
           sx={{ 
-            mb: 2,
+            fontWeight: 'bold',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
-            overflow: 'hidden'
+            minHeight: '64px'
           }}
         >
-          {event.description}
+          {event.title}
         </Typography>
 
-        <Box sx={{ mt: 'auto' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              {format(new Date(event.date), 'dd MMMM yyyy', { locale: tr })}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {event.eventTime}
-            </Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-            {event.hasAgeLimit && (
-              <Chip
-                label={`${event.ageLimit}+`}
-                size="small"
-                sx={{ 
-                  bgcolor: '#F57C00',
-                  color: 'white'
-                }}
-              />
-            )}
-            <Chip
-              label={`${event.participants ? event.participants.filter(p => p.status === 'APPROVED').length : 0}/${event.maxParticipants}`}
-              size="small"
-              sx={{ 
-                bgcolor: '#7B1FA2',
-                color: 'white'
-              }}
-            />
-          </Box>
-
-          <Button
-            component={Link}
-            to={`/events/${event.id}`}
-            variant="contained"
-            fullWidth
-            sx={{
-              bgcolor: '#3F51B5',
-              color: 'white',
-              '&:hover': {
-                bgcolor: '#303F9F'
-              },
-              textTransform: 'none',
-              borderRadius: '8px'
-            }}
-          >
-            Detayları Gör
-          </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+          <LocationOn sx={{ mr: 1, color: 'primary.main' }} />
+          <Typography variant="body2" color="text.secondary">
+            {event.location}
+          </Typography>
         </Box>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+          <Category sx={{ mr: 1, color: 'primary.main' }} />
+          <Typography variant="body2" color="text.secondary">
+            {event.category}
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+          <AttachMoney sx={{ mr: 1, color: event.isPaid ? 'error.main' : 'success.main' }} />
+          <Typography variant="body2" color={event.isPaid ? 'error.main' : 'success.main'}>
+            {formatPrice(event.price)}
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+          <Person sx={{ mr: 1, color: 'primary.main' }} />
+          <Typography variant="body2" color="text.secondary">
+            {event.currentParticipants || 0}/{event.maxParticipants || 'Sınırsız'} Katılımcı
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+          <CalendarToday sx={{ mr: 1, color: 'primary.main' }} />
+          <Typography variant="body2" color="text.secondary">
+            {format(new Date(event.date), 'd MMMM yyyy', { locale: tr })}
+          </Typography>
+        </Box>
+
+        {event.hasAgeLimit && (
+          <Chip 
+            label={`${event.ageLimit}+ Yaş`} 
+            color="warning" 
+            size="small" 
+            sx={{ mr: 1, mt: 1 }} 
+          />
+        )}
       </CardContent>
+
+      <Box sx={{ p: 2, pt: 0 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <Tooltip title={event.organizer?.fullName || 'Organizatör'}>
+            <Avatar
+              src={event.organizer?.profilePicture}
+              alt={event.organizer?.fullName}
+              sx={{ width: 32, height: 32, mr: 1 }}
+            />
+          </Tooltip>
+          <Typography variant="body2" color="text.secondary">
+            {event.organizer?.fullName || 'Organizatör'}
+          </Typography>
+        </Box>
+
+        <Button 
+          variant="contained" 
+          fullWidth
+          onClick={() => navigate(`/events/${event.id}`)}
+          sx={{
+            background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+            color: 'white',
+            boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+            '&:hover': {
+              background: 'linear-gradient(45deg, #21CBF3 30%, #2196F3 90%)',
+            }
+          }}
+        >
+          Detayları Gör
+        </Button>
+      </Box>
     </Card>
   );
 };

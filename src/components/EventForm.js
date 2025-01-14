@@ -13,7 +13,8 @@ import {
   InputAdornment,
   Switch,
   FormControlLabel,
-  Alert
+  Alert,
+  IconButton
 } from '@mui/material';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -22,6 +23,8 @@ import EventService from '../services/event.service';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import { CloudUpload, Clear } from '@mui/icons-material';
+import { toast } from 'react-hot-toast';
 
 // Leaflet ikon ayarları
 const customIcon = L.icon({
@@ -120,13 +123,14 @@ const EventForm = () => {
     address: '',
     maxParticipants: 1,
     category: '',
-    eventImage: '',
     hasAgeLimit: false,
     ageLimit: 0,
     isPaid: false,
     price: 0
   });
 
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [coordinates, setCoordinates] = useState(null);
   const [error, setError] = useState('');
   const [position, setPosition] = useState([41.0082, 28.9784]); // İstanbul varsayılan konum
@@ -147,9 +151,21 @@ const EventForm = () => {
     }
   };
 
-  const validateImageUrl = (url) => {
-    const pattern = /^(https?:\/\/)?[\w-]+(\.[\w-]+)+[/#?]?.*\.(jpg|jpeg|png|gif)$/;
-    return pattern.test(url);
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) { // 10MB kontrol
+        setError('Dosya boyutu 10MB\'dan küçük olmalıdır');
+        return;
+      }
+      if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+        setError('Sadece JPEG, PNG ve GIF formatları desteklenmektedir');
+        return;
+      }
+      setSelectedImage(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setError('');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -157,11 +173,6 @@ const EventForm = () => {
     
     if (!coordinates) {
       setError('Lütfen haritadan konum seçiniz');
-      return;
-    }
-
-    if (formData.eventImage && !validateImageUrl(formData.eventImage)) {
-      setError('Lütfen geçerli bir resim URL\'si giriniz (jpg, jpeg, png veya gif)');
       return;
     }
 
@@ -192,10 +203,21 @@ const EventForm = () => {
         return;
       }
 
-      await EventService.createEvent(eventData);
+      // Önce event'i oluştur
+      const eventResponse = await EventService.createEvent(eventData);
+      
+      // Eğer resim seçildiyse yükle
+      if (selectedImage) {
+        const imageFormData = new FormData();
+        imageFormData.append('image', selectedImage);
+        await EventService.uploadEventImage(eventResponse.data.id, imageFormData);
+      }
+
       navigate('/dashboard');
+      toast.success('Etkinlik başarıyla oluşturuldu!');
     } catch (error) {
       setError(error.response?.data?.message || 'Bir hata oluştu');
+      toast.error('Etkinlik oluşturulurken bir hata oluştu.');
     }
   };
 
@@ -337,19 +359,63 @@ const EventForm = () => {
             </Grid>
 
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Etkinlik Görseli URL"
-                name="eventImage"
-                value={formData.eventImage}
-                onChange={handleChange}
-                error={formData.eventImage && !validateImageUrl(formData.eventImage)}
-                helperText={
-                  formData.eventImage && !validateImageUrl(formData.eventImage)
-                    ? 'Geçerli bir resim URL\'si giriniz (örn: https://example.com/image.jpg)'
-                    : 'Örnek: https://domain.com/image.jpg (jpg, jpeg, png veya gif)'
-                }
-              />
+              <Box sx={{ 
+                border: '2px dashed #ccc', 
+                borderRadius: 2, 
+                p: 3, 
+                textAlign: 'center',
+                cursor: 'pointer',
+                '&:hover': { borderColor: 'primary.main' }
+              }}>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif"
+                  onChange={handleImageChange}
+                  style={{ display: 'none' }}
+                  id="event-image-input"
+                />
+                <label htmlFor="event-image-input">
+                  {previewUrl ? (
+                    <Box sx={{ position: 'relative' }}>
+                      <img
+                        src={previewUrl}
+                        alt="Event preview"
+                        style={{ 
+                          maxWidth: '100%', 
+                          maxHeight: '200px', 
+                          borderRadius: '8px' 
+                        }}
+                      />
+                      <IconButton
+                        sx={{
+                          position: 'absolute',
+                          top: 8,
+                          right: 8,
+                          bgcolor: 'rgba(0,0,0,0.5)',
+                          '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }
+                        }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setSelectedImage(null);
+                          setPreviewUrl(null);
+                        }}
+                      >
+                        <Clear sx={{ color: 'white' }} />
+                      </IconButton>
+                    </Box>
+                  ) : (
+                    <Box>
+                      <CloudUpload sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
+                      <Typography variant="body1" color="text.secondary">
+                        Etkinlik görseli yüklemek için tıklayın veya sürükleyin
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        PNG, JPG veya GIF (max. 10MB)
+                      </Typography>
+                    </Box>
+                  )}
+                </label>
+              </Box>
             </Grid>
 
             <Grid item xs={12} md={6}>

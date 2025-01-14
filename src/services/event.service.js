@@ -73,7 +73,24 @@ const EventService = {
 
     filterEvents: async (filters, page, size, sortBy, sortOrder) => {
         try {
-            const response = await api.post('/api/v1/events/filter', filters, {
+            const cleanFilters = Object.fromEntries(
+                Object.entries(filters).filter(([_, value]) => {
+                    if (value === null || value === undefined || value === '') return false;
+                    if (Array.isArray(value) && value.length === 0) return false;
+                    if (typeof value === 'number' && isNaN(value)) return false;
+                    return true;
+                })
+            );
+
+            if (cleanFilters.isPaid === false) delete cleanFilters.isPaid;
+            if (cleanFilters.hasAgeLimit === false) delete cleanFilters.hasAgeLimit;
+
+            if (cleanFilters.minPrice === 0) delete cleanFilters.minPrice;
+            if (cleanFilters.maxPrice === 1000) delete cleanFilters.maxPrice;
+            if (cleanFilters.minAge === 0) delete cleanFilters.minAge;
+            if (cleanFilters.maxAge === 100) delete cleanFilters.maxAge;
+
+            const response = await api.post('/api/v1/events/filter', cleanFilters, {
                 params: {
                     page,
                     size,
@@ -143,6 +160,32 @@ const EventService = {
                     throw new Error('Sunucu hatası oluştu. Lütfen daha sonra tekrar deneyiniz');
                 } else {
                     throw new Error(error.response.data.message || 'Katılımcı durumu güncellenirken bir hata oluştu');
+                }
+            } else if (error.request) {
+                throw new Error('Sunucuya ulaşılamıyor. Lütfen internet bağlantınızı kontrol ediniz');
+            } else {
+                throw new Error('Beklenmeyen bir hata oluştu');
+            }
+        }
+    },
+
+    uploadEventImage: async (eventId, formData) => {
+        try {
+            const response = await api.post(`/api/v1/events/${eventId}/image`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Upload event image error:', error);
+            if (error.response) {
+                if (error.response.status === 400) {
+                    throw new Error('Geçersiz resim formatı');
+                } else if (error.response.status === 500) {
+                    throw new Error('Sunucu hatası oluştu. Lütfen daha sonra tekrar deneyiniz');
+                } else {
+                    throw new Error(error.response.data.message || 'Resim yükleme işlemi sırasında bir hata oluştu');
                 }
             } else if (error.request) {
                 throw new Error('Sunucuya ulaşılamıyor. Lütfen internet bağlantınızı kontrol ediniz');

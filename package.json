@@ -25,6 +25,7 @@
     "react": "^18.2.0",
     "react-datepicker": "^7.6.0",
     "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.5.1",
     "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.1.1",
     "react-scripts": "5.0.1",

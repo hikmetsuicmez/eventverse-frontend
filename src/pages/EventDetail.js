@@ -128,6 +128,27 @@ const EventMap = ({ event }) => {
     );
 };
 
+const getDefaultImage = (category) => {
+    switch (category?.toLowerCase()) {
+        case 'eğitim':
+            return '/images/categories/education.jpg';
+        case 'spor':
+            return '/images/categories/sports.jpg';
+        case 'müzik':
+            return '/images/categories/music.jpg';
+        case 'sanat':
+            return '/images/categories/art.jpg';
+        case 'teknoloji':
+            return '/images/categories/technology.jpg';
+        case 'iş':
+            return '/images/categories/business.jpg';
+        case 'sağlık':
+            return '/images/categories/health.jpg';
+        default:
+            return '/images/categories/default.jpg';
+    }
+};
+
 const EventDetail = () => {
     const { id } = useParams();
     const { user } = useAuth();
@@ -275,6 +296,13 @@ const EventDetail = () => {
         }
     };
 
+    const getImageUrl = (event) => {
+        if (event?.imageUrl) {
+            return event.imageUrl;
+        }
+        return getDefaultImage(event?.category);
+    };
+
     if (loading) {
         return (
             <Box
@@ -310,345 +338,38 @@ const EventDetail = () => {
     }
 
     return (
-        <Box
-            sx={{
-                minHeight: '100vh',
-                bgcolor: '#001E3C',
-                pt: '84px',
-                pb: 4
-            }}
-        >
+        <Box sx={{ pt: '84px', pb: 8, bgcolor: '#0A1929', minHeight: '100vh' }}>
             <Container maxWidth="lg">
-                {error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                        {error}
-                    </Alert>
-                )}
-                {successMessage && (
-                    <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
-                        {successMessage}
-                    </Alert>
-                )}
-
-                <Grid container spacing={3}>
-                    {/* Sol Taraf - Etkinlik Detayları */}
-                    <Grid item xs={12} md={8}>
-                        <Paper
-                            elevation={0}
+                <Paper elevation={0} sx={{ p: 4, borderRadius: '16px' }}>
+                    {/* Etkinlik Görseli */}
+                    <Box sx={{ width: '100%', height: 400, position: 'relative', mb: 4 }}>
+                        <Box
+                            component="img"
+                            src={getImageUrl(event)}
+                            alt={event?.title}
                             sx={{
-                                p: 3,
-                                borderRadius: '16px',
-                                bgcolor: 'rgba(255, 255, 255, 0.95)',
-                                backdropFilter: 'blur(20px)'
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                borderRadius: '16px'
                             }}
-                        >
-                            <Box sx={{ position: 'relative', mb: 3 }}>
-                                <Box
-                                    component="img"
-                                    src={event.eventImage || '/event-placeholder.jpg'}
-                                    alt={event.title}
-                                    sx={{
-                                        width: '100%',
-                                        height: '300px',
-                                        objectFit: 'cover',
-                                        borderRadius: '12px',
-                                        mb: 3
-                                    }}
-                                />
-                                <Box
-                                    sx={{
-                                        position: 'absolute',
-                                        top: 16,
-                                        right: 16,
-                                        display: 'flex',
-                                        gap: 1
-                                    }}
-                                >
-                                    <IconButton
-                                        onClick={handleFavoriteClick}
-                                        disabled={favoriteLoading}
-                                        sx={{
-                                            bgcolor: 'white',
-                                            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' },
-                                            '&.Mui-disabled': { bgcolor: 'rgba(255, 255, 255, 0.7)' }
-                                        }}
-                                    >
-                                        {favoriteLoading ? (
-                                            <CircularProgress size={20} sx={{ color: '#e91e63' }} />
-                                        ) : isLiked ? (
-                                            <Favorite sx={{ color: '#e91e63' }} />
-                                        ) : (
-                                            <FavoriteBorder sx={{ color: '#666' }} />
-                                        )}
-                                    </IconButton>
-                                    <IconButton
-                                        sx={{
-                                            bgcolor: 'white',
-                                            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' }
-                                        }}
-                                        onClick={handleShare}
-                                    >
-                                        <Share sx={{ color: '#666' }} />
-                                    </IconButton>
-                                </Box>
-                            </Box>
+                        />
+                    </Box>
 
-                            <Typography variant="h4" sx={{ color: '#1a237e', mb: 2, fontWeight: 600 }}>
-                                {event.title}
-                            </Typography>
+                    {error && (
+                        <Alert severity="error" sx={{ mb: 2 }}>
+                            {error}
+                        </Alert>
+                    )}
+                    {successMessage && (
+                        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
+                            {successMessage}
+                        </Alert>
+                    )}
 
-                            <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
-                                <Chip
-                                    icon={<CalendarMonth sx={{ fontSize: 18 }} />}
-                                    label={`${formatDate(event.date)} ${event.eventTime || ''}`}
-                                    sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}
-                                />
-                                <Chip
-                                    icon={<LocationOn sx={{ fontSize: 18 }} />}
-                                    label={event.location}
-                                    sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}
-                                />
-                                <Chip
-                                    icon={<Group sx={{ fontSize: 18 }} />}
-                                    label={`${event.maxParticipants} Katılımcı`}
-                                    sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}
-                                />
-                                {event.hasAgeLimit && event.ageLimit > 0 && (
-                                    <Chip
-                                        icon={<Warning sx={{ fontSize: 18 }} />}
-                                        label={`+${event.ageLimit} Yaş`}
-                                        sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}
-                                    />
-                                )}
-                            </Box>
-
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                <CalendarMonth sx={{ color: '#1a237e', mr: 1 }} />
-                                <Typography variant="body1">
-                                    {event?.date ? format(new Date(event.date), 'dd MMMM yyyy', { locale: tr }) : 'Tarih belirtilmemiş'}
-                                </Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                <AccessTime sx={{ color: '#1a237e', mr: 1 }} />
-                                <Typography variant="body1">
-                                    {event?.eventTime || 'Saat belirtilmemiş'}
-                                </Typography>
-                            </Box>
-
-                            <Typography variant="h6" sx={{ color: '#1a237e', mb: 2, fontWeight: 600 }}>
-                                Etkinlik Açıklaması
-                            </Typography>
-                            <Typography variant="body1" sx={{ color: '#333', mb: 3, lineHeight: 1.7 }}>
-                                {event.description}
-                            </Typography>
-
-                            <Divider sx={{ my: 3 }} />
-
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                {participationStatus === 'APPROVED' ? (
-                                    <Button
-                                        variant="contained"
-                                        size="large"
-                                        disabled
-                                        sx={{
-                                            bgcolor: '#4CAF50',
-                                            '&.Mui-disabled': {
-                                                bgcolor: '#4CAF50',
-                                                color: 'white'
-                                            },
-                                            borderRadius: '8px',
-                                            px: 4
-                                        }}
-                                    >
-                                        Katıldınız
-                                    </Button>
-                                ) : participationStatus === 'PENDING' ? (
-                                    <Button
-                                        variant="contained"
-                                        size="large"
-                                        disabled
-                                        sx={{
-                                            bgcolor: '#FFA726',
-                                            '&.Mui-disabled': {
-                                                bgcolor: '#FFA726',
-                                                color: 'white'
-                                            },
-                                            borderRadius: '8px',
-                                            px: 4
-                                        }}
-                                    >
-                                        Organizatör Onayı Bekleniyor
-                                    </Button>
-                                ) : (
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                        <Button
-                                            variant="contained"
-                                            size="large"
-                                            onClick={handleJoinEvent}
-                                            disabled={joinLoading}
-                                            sx={{
-                                                bgcolor: '#1a237e',
-                                                '&:hover': { bgcolor: '#0d47a1' },
-                                                borderRadius: '8px',
-                                                px: 4
-                                            }}
-                                        >
-                                            {joinLoading ? (
-                                                <CircularProgress size={24} sx={{ color: 'white' }} />
-                                            ) : (
-                                                'Katıl'
-                                            )}
-                                        </Button>
-                                        {event.paid && (
-                                            <Box
-                                                sx={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: 1,
-                                                    bgcolor: 'rgba(58, 136, 214, 0.08)',
-                                                    color: '#3083D5',
-                                                    py: 1.5,
-                                                    px: 3,
-                                                    borderRadius: '12px',
-                                                    fontWeight: 600,
-                                                    fontSize: '1.1rem',
-                                                    boxShadow: '0 2px 8px rgba(68, 145, 225, 0.15)',
-                                                    border: '1px solid rgba(58, 136, 214, 0.2)',
-                                                    transition: 'all 0.2s ease',
-                                                    '&:hover': {
-                                                        transform: 'translateY(-2px)',
-                                                        boxShadow: '0 4px 12px rgba(98, 159, 234, 0.2)'
-                                                    }
-                                                }}
-                                            >
-                                                
-                                                {event.price} ₺
-                                            </Box>
-                                        )}
-                                    </Box>
-                                )}
-                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                                    <Typography variant="body2" color="text.secondary">
-                                        {event.maxParticipants} kişilik kontenjan
-                                    </Typography>
-                                    {event.participants && (
-                                        <Typography variant="body2" color="text.secondary">
-                                            {event.participants.length} katılımcı
-                                        </Typography>
-                                    )}
-                                </Box>
-                            </Box>
-
-                            <Box sx={{ mt: 3 }}>
-                                <CommentSection eventId={event.id} currentUser={user} />
-                            </Box>
-                        </Paper>
-                    </Grid>
-
-                    {/* Sağ Taraf - Organizatör Bilgileri, Harita ve Katılımcılar */}
-                    <Grid item xs={12} md={4}>
-                        {/* Organizatör Bilgileri */}
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                p: 3,
-                                borderRadius: '16px',
-                                bgcolor: 'rgba(255, 255, 255, 0.95)',
-                                backdropFilter: 'blur(20px)',
-                                mb: 3
-                            }}
-                        >
-                            <Typography variant="h6" sx={{ color: '#1a237e', mb: 3, fontWeight: 600 }}>
-                                Organizatör
-                            </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <Tooltip title={`Organizatör: ${event.organizer?.firstName || ''} ${event.organizer?.lastName || ''}`}>
-                                    <Avatar
-                                        src={event.organizer?.profilePicture}
-                                        alt={`${event.organizer?.firstName} ${event.organizer?.lastName}`}
-                                        sx={{
-                                            width: 64,
-                                            height: 64,
-                                            border: '3px solid white',
-                                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                            cursor: 'pointer',
-                                            '&:hover': {
-                                                transform: 'scale(1.05)',
-                                                transition: 'transform 0.2s'
-                                            }
-                                        }}
-                                    />
-                                </Tooltip>
-                                <Box>
-                                    <Typography
-                                        variant="subtitle1"
-                                        sx={{
-                                            color: '#1a237e',
-                                            fontWeight: 600
-                                        }}
-                                    >
-                                        {event.organizer?.firstName} {event.organizer?.lastName}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        {event.organizer?.email}
-                                    </Typography>
-                                </Box>
-                            </Box>
-                        </Paper>
-
-                        {/* Konum */}
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                p: 3,
-                                borderRadius: '16px',
-                                bgcolor: 'rgba(255, 255, 255, 0.95)',
-                                backdropFilter: 'blur(20px)',
-                                mb: 3
-                            }}
-                        >
-                            <Typography variant="h6" sx={{ color: '#1a237e', mb: 3, fontWeight: 600 }}>
-                                Konum
-                            </Typography>
-                            <EventMap event={event} />
-                            <Typography
-                                variant="body2"
-                                sx={{
-                                    color: '#666',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    mt: 2,
-                                    mb: 2
-                                }}
-                            >
-                                <LocationOn sx={{ fontSize: 18, mr: 1, color: '#1a237e' }} />
-                                {event.location}
-                            </Typography>
-                            {event?.latitude && event?.longitude && (
-                                <Button
-                                    variant="outlined"
-                                    startIcon={<LocationOn />}
-                                    fullWidth
-                                    onClick={() => {
-                                        const url = `https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`;
-                                        window.open(url, '_blank');
-                                    }}
-                                    sx={{
-                                        borderColor: '#1a237e',
-                                        color: '#1a237e',
-                                        '&:hover': {
-                                            borderColor: '#0d47a1',
-                                            bgcolor: 'rgba(26, 35, 126, 0.04)'
-                                        }
-                                    }}
-                                >
-                                    Yol Tarifi Al
-                                </Button>
-                            )}
-                        </Paper>
-
-                        {/* Katılımcılar Listesi - Sadece organizatör için görünür */}
-                        {user?.id === event.organizer?.id && (
+                    <Grid container spacing={3}>
+                        {/* Sol Taraf - Etkinlik Detayları */}
+                        <Grid item xs={12} md={8}>
                             <Paper
                                 elevation={0}
                                 sx={{
@@ -658,96 +379,413 @@ const EventDetail = () => {
                                     backdropFilter: 'blur(20px)'
                                 }}
                             >
-                                <Typography variant="h6" sx={{ color: '#1a237e', mb: 3, fontWeight: 600 }}>
-                                    Katılımcılar
+                                <Box sx={{ position: 'relative', mb: 3 }}>
+                                    <Box
+                                        component="img"
+                                        src={event.eventImage || '/event-placeholder.jpg'}
+                                        alt={event.title}
+                                        sx={{
+                                            width: '100%',
+                                            height: '300px',
+                                            objectFit: 'cover',
+                                            borderRadius: '12px',
+                                            mb: 3
+                                        }}
+                                    />
+                                    <Box
+                                        sx={{
+                                            position: 'absolute',
+                                            top: 16,
+                                            right: 16,
+                                            display: 'flex',
+                                            gap: 1
+                                        }}
+                                    >
+                                        <IconButton
+                                            onClick={handleFavoriteClick}
+                                            disabled={favoriteLoading}
+                                            sx={{
+                                                bgcolor: 'white',
+                                                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' },
+                                                '&.Mui-disabled': { bgcolor: 'rgba(255, 255, 255, 0.7)' }
+                                            }}
+                                        >
+                                            {favoriteLoading ? (
+                                                <CircularProgress size={20} sx={{ color: '#e91e63' }} />
+                                            ) : isLiked ? (
+                                                <Favorite sx={{ color: '#e91e63' }} />
+                                            ) : (
+                                                <FavoriteBorder sx={{ color: '#666' }} />
+                                            )}
+                                        </IconButton>
+                                        <IconButton
+                                            sx={{
+                                                bgcolor: 'white',
+                                                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' }
+                                            }}
+                                            onClick={handleShare}
+                                        >
+                                            <Share sx={{ color: '#666' }} />
+                                        </IconButton>
+                                    </Box>
+                                </Box>
+
+                                <Typography variant="h4" sx={{ color: '#1a237e', mb: 2, fontWeight: 600 }}>
+                                    {event.title}
                                 </Typography>
-                                {event.participants && event.participants.length > 0 ? (
-                                    <List sx={{ width: '100%', bgcolor: 'transparent' }}>
-                                        {event.participants.map((participant) => (
-                                            <ListItem
-                                                key={participant.id}
-                                                sx={{
-                                                    bgcolor: 'rgba(255, 255, 255, 0.8)',
-                                                    borderRadius: '8px',
-                                                    mb: 1,
-                                                    '&:last-child': { mb: 0 }
-                                                }}
-                                                secondaryAction={
-                                                    participant.status === 'PENDING' && (
-                                                        <Box sx={{ display: 'flex', gap: 1 }}>
-                                                            <IconButton
-                                                                edge="end"
-                                                                disabled={participantActionLoading}
-                                                                onClick={() => handleParticipantAction(participant.id, 'APPROVED')}
-                                                                sx={{
-                                                                    color: 'success.main',
-                                                                    '&:hover': { bgcolor: 'success.light' }
-                                                                }}
-                                                            >
-                                                                <Check />
-                                                            </IconButton>
-                                                            <IconButton
-                                                                edge="end"
-                                                                disabled={participantActionLoading}
-                                                                onClick={() => handleParticipantAction(participant.id, 'REJECTED')}
-                                                                sx={{
-                                                                    color: 'error.main',
-                                                                    '&:hover': { bgcolor: 'error.light' }
-                                                                }}
-                                                            >
-                                                                <Close />
-                                                            </IconButton>
-                                                        </Box>
-                                                    )
-                                                }
-                                            >
-                                                <ListItemAvatar>
-                                                    <Avatar
-                                                        src={participant.user?.profilePicture}
-                                                        alt={`${participant.user?.firstName} ${participant.user?.lastName}`}
-                                                    />
-                                                </ListItemAvatar>
-                                                <ListItemText
-                                                    primary={`${participant.user?.firstName} ${participant.user?.lastName}`}
-                                                    secondary={
-                                                        <Chip
-                                                            label={
-                                                                participant.status === 'PENDING'
-                                                                    ? 'Onay Bekliyor'
-                                                                    : participant.status === 'APPROVED'
-                                                                        ? 'Onaylandı'
-                                                                        : 'Reddedildi'
-                                                            }
-                                                            size="small"
-                                                            sx={{
-                                                                bgcolor:
-                                                                    participant.status === 'PENDING'
-                                                                        ? 'warning.light'
-                                                                        : participant.status === 'APPROVED'
-                                                                            ? 'success.light'
-                                                                            : 'error.light',
-                                                                color:
-                                                                    participant.status === 'PENDING'
-                                                                        ? 'warning.dark'
-                                                                        : participant.status === 'APPROVED'
-                                                                            ? 'success.dark'
-                                                                            : 'error.dark'
-                                                            }}
-                                                        />
-                                                    }
-                                                />
-                                            </ListItem>
-                                        ))}
-                                    </List>
-                                ) : (
-                                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-                                        Henüz katılımcı yok
+
+                                <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+                                    <Chip
+                                        icon={<CalendarMonth sx={{ fontSize: 18 }} />}
+                                        label={`${formatDate(event.date)} ${event.eventTime || ''}`}
+                                        sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}
+                                    />
+                                    <Chip
+                                        icon={<LocationOn sx={{ fontSize: 18 }} />}
+                                        label={event.location}
+                                        sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}
+                                    />
+                                    <Chip
+                                        icon={<Group sx={{ fontSize: 18 }} />}
+                                        label={`${event.maxParticipants} Katılımcı`}
+                                        sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}
+                                    />
+                                    {event.hasAgeLimit && event.ageLimit > 0 && (
+                                        <Chip
+                                            icon={<Warning sx={{ fontSize: 18 }} />}
+                                            label={`+${event.ageLimit} Yaş`}
+                                            sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}
+                                        />
+                                    )}
+                                </Box>
+
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                    <CalendarMonth sx={{ color: '#1a237e', mr: 1 }} />
+                                    <Typography variant="body1">
+                                        {event?.date ? format(new Date(event.date), 'dd MMMM yyyy', { locale: tr }) : 'Tarih belirtilmemiş'}
                                     </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                    <AccessTime sx={{ color: '#1a237e', mr: 1 }} />
+                                    <Typography variant="body1">
+                                        {event?.eventTime || 'Saat belirtilmemiş'}
+                                    </Typography>
+                                </Box>
+
+                                <Typography variant="h6" sx={{ color: '#1a237e', mb: 2, fontWeight: 600 }}>
+                                    Etkinlik Açıklaması
+                                </Typography>
+                                <Typography variant="body1" sx={{ color: '#333', mb: 3, lineHeight: 1.7 }}>
+                                    {event.description}
+                                </Typography>
+
+                                <Divider sx={{ my: 3 }} />
+
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    {participationStatus === 'APPROVED' ? (
+                                        <Button
+                                            variant="contained"
+                                            size="large"
+                                            disabled
+                                            sx={{
+                                                bgcolor: '#4CAF50',
+                                                '&.Mui-disabled': {
+                                                    bgcolor: '#4CAF50',
+                                                    color: 'white'
+                                                },
+                                                borderRadius: '8px',
+                                                px: 4
+                                            }}
+                                        >
+                                            Katıldınız
+                                        </Button>
+                                    ) : participationStatus === 'PENDING' ? (
+                                        <Button
+                                            variant="contained"
+                                            size="large"
+                                            disabled
+                                            sx={{
+                                                bgcolor: '#FFA726',
+                                                '&.Mui-disabled': {
+                                                    bgcolor: '#FFA726',
+                                                    color: 'white'
+                                                },
+                                                borderRadius: '8px',
+                                                px: 4
+                                            }}
+                                        >
+                                            Organizatör Onayı Bekleniyor
+                                        </Button>
+                                    ) : (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                            <Button
+                                                variant="contained"
+                                                size="large"
+                                                onClick={handleJoinEvent}
+                                                disabled={joinLoading}
+                                                sx={{
+                                                    bgcolor: '#1a237e',
+                                                    '&:hover': { bgcolor: '#0d47a1' },
+                                                    borderRadius: '8px',
+                                                    px: 4
+                                                }}
+                                            >
+                                                {joinLoading ? (
+                                                    <CircularProgress size={24} sx={{ color: 'white' }} />
+                                                ) : (
+                                                    'Katıl'
+                                                )}
+                                            </Button>
+                                            {event.paid && (
+                                                <Box
+                                                    sx={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: 1,
+                                                        bgcolor: 'rgba(58, 136, 214, 0.08)',
+                                                        color: '#3083D5',
+                                                        py: 1.5,
+                                                        px: 3,
+                                                        borderRadius: '12px',
+                                                        fontWeight: 600,
+                                                        fontSize: '1.1rem',
+                                                        boxShadow: '0 2px 8px rgba(68, 145, 225, 0.15)',
+                                                        border: '1px solid rgba(58, 136, 214, 0.2)',
+                                                        transition: 'all 0.2s ease',
+                                                        '&:hover': {
+                                                            transform: 'translateY(-2px)',
+                                                            boxShadow: '0 4px 12px rgba(98, 159, 234, 0.2)'
+                                                        }
+                                                    }}
+                                                >
+                                                    
+                                                    {event.price} ₺
+                                                </Box>
+                                            )}
+                                        </Box>
+                                    )}
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                        <Typography variant="body2" color="text.secondary">
+                                            {event.maxParticipants} kişilik kontenjan
+                                        </Typography>
+                                        {event.participants && (
+                                            <Typography variant="body2" color="text.secondary">
+                                                {event.participants.length} katılımcı
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                </Box>
+
+                                <Box sx={{ mt: 3 }}>
+                                    <CommentSection eventId={event.id} currentUser={user} />
+                                </Box>
+                            </Paper>
+                        </Grid>
+
+                        {/* Sağ Taraf - Organizatör Bilgileri, Harita ve Katılımcılar */}
+                        <Grid item xs={12} md={4}>
+                            {/* Organizatör Bilgileri */}
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    p: 3,
+                                    borderRadius: '16px',
+                                    bgcolor: 'rgba(255, 255, 255, 0.95)',
+                                    backdropFilter: 'blur(20px)',
+                                    mb: 3
+                                }}
+                            >
+                                <Typography variant="h6" sx={{ color: '#1a237e', mb: 3, fontWeight: 600 }}>
+                                    Organizatör
+                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <Tooltip title={`Organizatör: ${event.organizer?.firstName || ''} ${event.organizer?.lastName || ''}`}>
+                                        <Avatar
+                                            src={event.organizer?.profilePicture}
+                                            alt={`${event.organizer?.firstName} ${event.organizer?.lastName}`}
+                                            sx={{
+                                                width: 64,
+                                                height: 64,
+                                                border: '3px solid white',
+                                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                                cursor: 'pointer',
+                                                '&:hover': {
+                                                    transform: 'scale(1.05)',
+                                                    transition: 'transform 0.2s'
+                                                }
+                                            }}
+                                        />
+                                    </Tooltip>
+                                    <Box>
+                                        <Typography
+                                            variant="subtitle1"
+                                            sx={{
+                                                color: '#1a237e',
+                                                fontWeight: 600
+                                            }}
+                                        >
+                                            {event.organizer?.firstName} {event.organizer?.lastName}
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            {event.organizer?.email}
+                                        </Typography>
+                                    </Box>
+                                </Box>
+                            </Paper>
+
+                            {/* Konum */}
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    p: 3,
+                                    borderRadius: '16px',
+                                    bgcolor: 'rgba(255, 255, 255, 0.95)',
+                                    backdropFilter: 'blur(20px)',
+                                    mb: 3
+                                }}
+                            >
+                                <Typography variant="h6" sx={{ color: '#1a237e', mb: 3, fontWeight: 600 }}>
+                                    Konum
+                                </Typography>
+                                <EventMap event={event} />
+                                <Typography
+                                    variant="body2"
+                                    sx={{
+                                        color: '#666',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        mt: 2,
+                                        mb: 2
+                                    }}
+                                >
+                                    <LocationOn sx={{ fontSize: 18, mr: 1, color: '#1a237e' }} />
+                                    {event.location}
+                                </Typography>
+                                {event?.latitude && event?.longitude && (
+                                    <Button
+                                        variant="outlined"
+                                        startIcon={<LocationOn />}
+                                        fullWidth
+                                        onClick={() => {
+                                            const url = `https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`;
+                                            window.open(url, '_blank');
+                                        }}
+                                        sx={{
+                                            borderColor: '#1a237e',
+                                            color: '#1a237e',
+                                            '&:hover': {
+                                                borderColor: '#0d47a1',
+                                                bgcolor: 'rgba(26, 35, 126, 0.04)'
+                                            }
+                                        }}
+                                    >
+                                        Yol Tarifi Al
+                                    </Button>
                                 )}
                             </Paper>
-                        )}
+
+                            {/* Katılımcılar Listesi - Sadece organizatör için görünür */}
+                            {user?.id === event.organizer?.id && (
+                                <Paper
+                                    elevation={0}
+                                    sx={{
+                                        p: 3,
+                                        borderRadius: '16px',
+                                        bgcolor: 'rgba(255, 255, 255, 0.95)',
+                                        backdropFilter: 'blur(20px)'
+                                    }}
+                                >
+                                    <Typography variant="h6" sx={{ color: '#1a237e', mb: 3, fontWeight: 600 }}>
+                                        Katılımcılar
+                                    </Typography>
+                                    {event.participants && event.participants.length > 0 ? (
+                                        <List sx={{ width: '100%', bgcolor: 'transparent' }}>
+                                            {event.participants.map((participant) => (
+                                                <ListItem
+                                                    key={participant.id}
+                                                    sx={{
+                                                        bgcolor: 'rgba(255, 255, 255, 0.8)',
+                                                        borderRadius: '8px',
+                                                        mb: 1,
+                                                        '&:last-child': { mb: 0 }
+                                                    }}
+                                                    secondaryAction={
+                                                        participant.status === 'PENDING' && (
+                                                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                                                <IconButton
+                                                                    edge="end"
+                                                                    disabled={participantActionLoading}
+                                                                    onClick={() => handleParticipantAction(participant.id, 'APPROVED')}
+                                                                    sx={{
+                                                                        color: 'success.main',
+                                                                        '&:hover': { bgcolor: 'success.light' }
+                                                                    }}
+                                                                >
+                                                                    <Check />
+                                                                </IconButton>
+                                                                <IconButton
+                                                                    edge="end"
+                                                                    disabled={participantActionLoading}
+                                                                    onClick={() => handleParticipantAction(participant.id, 'REJECTED')}
+                                                                    sx={{
+                                                                        color: 'error.main',
+                                                                        '&:hover': { bgcolor: 'error.light' }
+                                                                    }}
+                                                                >
+                                                                    <Close />
+                                                                </IconButton>
+                                                            </Box>
+                                                        )
+                                                    }
+                                                >
+                                                    <ListItemAvatar>
+                                                        <Avatar
+                                                            src={participant.user?.profilePicture}
+                                                            alt={`${participant.user?.firstName} ${participant.user?.lastName}`}
+                                                        />
+                                                    </ListItemAvatar>
+                                                    <ListItemText
+                                                        primary={`${participant.user?.firstName} ${participant.user?.lastName}`}
+                                                        secondary={
+                                                            <Chip
+                                                                label={
+                                                                    participant.status === 'PENDING'
+                                                                        ? 'Onay Bekliyor'
+                                                                        : participant.status === 'APPROVED'
+                                                                            ? 'Onaylandı'
+                                                                            : 'Reddedildi'
+                                                                }
+                                                                size="small"
+                                                                sx={{
+                                                                    bgcolor:
+                                                                        participant.status === 'PENDING'
+                                                                            ? 'warning.light'
+                                                                            : participant.status === 'APPROVED'
+                                                                                ? 'success.light'
+                                                                                : 'error.light',
+                                                                    color:
+                                                                        participant.status === 'PENDING'
+                                                                            ? 'warning.dark'
+                                                                            : participant.status === 'APPROVED'
+                                                                                ? 'success.dark'
+                                                                                : 'error.dark'
+                                                                }}
+                                                            />
+                                                        }
+                                                    />
+                                                </ListItem>
+                                            ))}
+                                        </List>
+                                    ) : (
+                                        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+                                            Henüz katılımcı yok
+                                        </Typography>
+                                    )}
+                                </Paper>
+                            )}
+                        </Grid>
                     </Grid>
-                </Grid>
+                </Paper>
             </Container>
         </Box>
     );
