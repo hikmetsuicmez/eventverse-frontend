@@ -16,7 +16,9 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemAvatar
+  ListItemAvatar,
+  ListItemIcon,
+  Paper
 } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -28,10 +30,17 @@ import AddIcon from '@mui/icons-material/Add';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import PersonIcon from '@mui/icons-material/Person';
 import SettingsIcon from '@mui/icons-material/Settings';
+import InfoIcon from '@mui/icons-material/Info';
 import { alpha } from '@mui/material/styles';
 import NotificationService from '../services/notification.service';
 import { notificationEvents } from '../utils/notificationEvents';
 import CalendarMonth from '@mui/icons-material/CalendarMonth';
+import EventIcon from '@mui/icons-material/Event';
+import SearchService from '../services/search.service';
+import { debounce } from 'lodash';
+import { format } from 'date-fns';
+import { useTheme } from '@mui/material/styles';
+import { toast } from 'react-hot-toast';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -40,6 +49,11 @@ const Navbar = () => {
   const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState({ events: [], users: [] });
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchAnchorEl, setSearchAnchorEl] = useState(null);
+  const theme = useTheme();
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -117,6 +131,53 @@ const Navbar = () => {
     }
   };
 
+  const handleSearch = async (value) => {
+    try {
+        setSearchQuery(value);
+        if (!value.trim()) {
+            setSearchResults({ events: [], users: [] });
+            setSearchAnchorEl(null);
+            return;
+        }
+        
+        if (value.trim().length < 2) {
+            return;
+        }
+
+        setIsSearching(true);
+        const response = await SearchService.search(value);
+        if (response.data) {
+            setSearchResults(response.data);
+            const searchInput = document.querySelector('#search-input');
+            if (searchInput && !searchAnchorEl) {
+                setSearchAnchorEl(searchInput);
+            }
+        }
+    } catch (error) {
+        console.error('Search error:', error);
+        toast.error('Arama sırasında bir hata oluştu');
+    } finally {
+        setIsSearching(false);
+    }
+  };
+
+  const handleSearchItemClick = (type, item) => {
+    if (type === 'event') {
+        navigate(`/events/${item.id}`);
+    } else if (type === 'user') {
+        navigate(`/users/${item.id}`);
+    }
+    setSearchQuery('');
+    setSearchResults({ events: [], users: [] });
+    setSearchAnchorEl(null);
+  };
+
+  const handleSearchInputChange = (event) => {
+    const value = event.target.value;
+    setSearchQuery(value);
+    handleSearch(value);
+  };
+
   return (
     <AppBar 
       position="fixed" 
@@ -187,17 +248,27 @@ const Navbar = () => {
               <SearchIcon sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '20px' }}/>
             </Box>
             <InputBase
+              id="search-input"
               placeholder="Etkinlik veya kullanıcı ara..."
+              value={searchQuery}
+              onChange={handleSearchInputChange}
+              autoComplete="off"
+              onFocus={(e) => {
+                  if (searchQuery.trim().length >= 2) {
+                      setSearchAnchorEl(e.currentTarget);
+                  }
+              }}
               sx={{
-                color: 'white',
-                padding: '4px 4px 4px 36px',
-                width: '100%',
-                fontSize: '0.9rem',
-                '& input::placeholder': {
-                  color: 'rgba(255,255,255,0.7)',
-                  opacity: 1,
-                  fontSize: '0.9rem'
-                }
+                  color: 'inherit',
+                  width: '100%',
+                  '& .MuiInputBase-input': {
+                      padding: '8px 8px 8px 0',
+                      paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+                      width: '100%',
+                      '&:focus': {
+                          outline: 'none'
+                      }
+                  }
               }}
             />
           </Box>
@@ -487,38 +558,176 @@ const Navbar = () => {
                     p: 2,
                     display: 'flex',
                     flexDirection: 'column',
-                    alignItems: 'flex-start'
+                    alignItems: 'flex-start',
+                    position: 'relative'
                   }}
                 >
-                  <Typography sx={{ 
-                    color: 'white',
-                    fontWeight: 500,
-                    mb: 1,
-                    fontSize: '0.95rem',
-                    lineHeight: 1.4
-                  }}>
-                    {notification.message}
-                  </Typography>
-                  <Typography sx={{ 
-                    color: 'rgba(255,255,255,0.5)',
-                    fontSize: '0.85rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-                    <CalendarMonth sx={{ fontSize: 16 }} />
-                    {new Date(notification.timestamp).toLocaleString('tr-TR', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, width: '100%' }}>
+                    <InfoIcon sx={{ color: '#90caf9', width: 24, height: 24 }} />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography sx={{ 
+                        color: 'white',
+                        fontWeight: 500,
+                        fontSize: '0.95rem',
+                        lineHeight: 1.4
+                      }}>
+                        {notification.message}
+                      </Typography>
+                      <Typography sx={{ 
+                        color: 'rgba(255,255,255,0.5)',
+                        fontSize: '0.85rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1
+                      }}>
+                        <CalendarMonth sx={{ fontSize: 16 }} />
+                        {new Date(notification.timestamp).toLocaleString('tr-TR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </Typography>
+                    </Box>
+                    <IconButton
+                      size="small"
+                      sx={{ 
+                        color: 'rgba(255,255,255,0.5)',
+                        '&:hover': { color: 'white' }
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNotificationRead(notification.id, notification.eventId, notifications);
+                      }}
+                    >
+                      <Badge variant="dot" color="error">
+                        <NotificationsIcon fontSize="small" />
+                      </Badge>
+                    </IconButton>
+                  </Box>
                 </ListItem>
               ))
             )}
           </List>
+        </Menu>
+
+        <Menu
+          anchorEl={searchAnchorEl}
+          open={Boolean(searchAnchorEl) && Boolean(searchResults)}
+          onClose={() => setSearchAnchorEl(null)}
+          PaperProps={{
+            sx: {
+              width: '400px',
+              maxHeight: '500px',
+              mt: 1.5,
+              backgroundColor: '#0A1929',
+              color: 'white',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              position: 'absolute',
+              zIndex: 9999
+            },
+            onMouseDown: (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          }}
+          MenuListProps={{
+            sx: { py: 0 },
+            onMouseEnter: () => {
+              const input = document.querySelector('#search-input');
+              if (input) input.blur();
+            },
+            onMouseLeave: () => {
+              const input = document.querySelector('#search-input');
+              if (input) input.focus();
+            }
+          }}
+          disableAutoFocus
+          disableEnforceFocus
+          keepMounted
+          transformOrigin={{ horizontal: 'center', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'center', vertical: 'bottom' }}
+        >
+          {searchResults.events.length > 0 && (
+            <>
+              <Typography sx={{ px: 2, py: 1, color: 'rgba(255,255,255,0.7)' }}>
+                Etkinlikler
+              </Typography>
+              {searchResults.events.map(event => (
+                <MenuItem
+                  key={event.id}
+                  onClick={() => handleSearchItemClick('event', event)}
+                  sx={{
+                    py: 1,
+                    '&:hover': {
+                      bgcolor: 'rgba(144, 202, 249, 0.08)'
+                    }
+                  }}
+                >
+                  <ListItemIcon>
+                    <EventIcon sx={{ color: '#90caf9' }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={event.title}
+                    secondary={
+                      <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                        {event.location}
+                      </Typography>
+                    }
+                  />
+                </MenuItem>
+              ))}
+            </>
+          )}
+
+          {searchResults.users.length > 0 && (
+            <>
+              <Typography sx={{ px: 2, py: 1, color: 'rgba(255,255,255,0.7)' }}>
+                Kullanıcılar
+              </Typography>
+              {searchResults.users.map(user => (
+                <MenuItem
+                  key={user.id}
+                  onClick={() => handleSearchItemClick('user', user)}
+                  sx={{
+                    py: 1,
+                    '&:hover': {
+                      bgcolor: 'rgba(144, 202, 249, 0.08)'
+                    }
+                  }}
+                >
+                  <ListItemIcon>
+                    {user.profilePicture ? (
+                      <Avatar
+                        src={user.profilePicture}
+                        sx={{ width: 24, height: 24 }}
+                      />
+                    ) : (
+                      <PersonIcon sx={{ color: '#90caf9' }} />
+                    )}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={`${user.firstName} ${user.lastName}`}
+                    secondary={
+                      <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                        {user.email}
+                      </Typography>
+                    }
+                  />
+                </MenuItem>
+              ))}
+            </>
+          )}
+
+          {(!searchResults.events.length && !searchResults.users.length && searchQuery) && (
+            <Typography sx={{ p: 2, textAlign: 'center', color: 'rgba(255,255,255,0.5)' }}>
+              Sonuç bulunamadı
+            </Typography>
+          )}
         </Menu>
       </Toolbar>
     </AppBar>

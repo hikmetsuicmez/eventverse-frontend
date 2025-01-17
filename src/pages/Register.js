@@ -20,6 +20,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers';
 import { tr } from 'date-fns/locale';
+import { format } from 'date-fns';
 
 const getPasswordErrors = (password) => {
   const errors = [];
@@ -101,7 +102,7 @@ const Register = () => {
         const formattedValues = {
           ...values,
           phoneNumber: values.phoneNumber.startsWith('+90') ? values.phoneNumber : '+90' + values.phoneNumber,
-          birthDate: values.birthDate ? values.birthDate.toISOString().split('T')[0] : null
+          birthDate: values.birthDate ? format(values.birthDate, 'yyyy-MM-dd') : null
         };
         console.log('Form verileri:', formattedValues);
         await register(formattedValues);

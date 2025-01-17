@@ -14,6 +14,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
+import { useAuth } from '../context/AuthContext';
 import {
   LocationOn,
   Category,
@@ -24,6 +25,16 @@ import {
 
 const EventCard = ({ event }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleOrganizerClick = (e, organizerId) => {
+    e.stopPropagation();
+    if (user?.id === organizerId) {
+      navigate('/profile');
+    } else {
+      navigate(`/users/${organizerId}`);
+    }
+  };
 
   const formatPrice = (price) => {
     if (price === 0) return 'Ücretsiz';
@@ -143,7 +154,15 @@ const EventCard = ({ event }) => {
       </CardContent>
 
       <Box sx={{ p: 2, pt: 0 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            mb: 2,
+            cursor: 'pointer'
+          }}
+          onClick={(e) => handleOrganizerClick(e, event.organizer?.id)}
+        >
           <Tooltip title={event.organizer?.fullName || 'Organizatör'}>
             <Avatar
               src={event.organizer?.profilePicture}

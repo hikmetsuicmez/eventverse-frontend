@@ -193,6 +193,16 @@ const EventService = {
                 throw new Error('Beklenmeyen bir hata oluştu');
             }
         }
+    },
+
+    updateEvent: async (eventId, eventData) => {
+        try {
+            const response = await api.put(`/api/v1/events/${eventId}`, eventData);
+            return response.data;
+        } catch (error) {
+            console.error('Error updating event:', error);
+            throw error;
+        }
     }
 };
 

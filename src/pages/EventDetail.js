@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
     Box,
     Container,
@@ -39,7 +39,8 @@ import {
     Send,
     Reply,
     ChatBubbleOutline,
-    CalendarMonth
+    CalendarMonth,
+    Edit
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
@@ -162,6 +163,7 @@ const EventDetail = () => {
     const [successMessage, setSuccessMessage] = useState('');
     const [participationStatus, setParticipationStatus] = useState(null);
     const [participantActionLoading, setParticipantActionLoading] = useState(false);
+    const navigate = useNavigate();
 
     const fetchEventDetails = async () => {
         try {
@@ -303,6 +305,14 @@ const EventDetail = () => {
         return getDefaultImage(event?.category);
     };
 
+    const handleOrganizerClick = (organizerId) => {
+        if (user?.id === organizerId) {
+            navigate('/profile');
+        } else {
+            navigate(`/users/${organizerId}`);
+        }
+    };
+
     if (loading) {
         return (
             <Box
@@ -341,6 +351,25 @@ const EventDetail = () => {
         <Box sx={{ pt: '84px', pb: 8, bgcolor: '#0A1929', minHeight: '100vh' }}>
             <Container maxWidth="lg">
                 <Paper elevation={0} sx={{ p: 4, borderRadius: '16px' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+                        <Typography variant="h4" sx={{ color: '#1a237e', fontWeight: 600 }}>
+                            {event?.title}
+                        </Typography>
+                        {user?.id === event.organizer?.id && (
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={<Edit />}
+                                onClick={() => navigate(`/events/${id}/edit`)}
+                                sx={{ 
+                                    backgroundColor: '#1a237e',
+                                    '&:hover': { backgroundColor: '#0d47a1' }
+                                }}
+                            >
+                                Düzenle
+                            </Button>
+                        )}
+                    </Box>
                     {/* Etkinlik Görseli */}
                     <Box sx={{ width: '100%', height: 400, position: 'relative', mb: 4 }}>
                         <Box
@@ -381,18 +410,6 @@ const EventDetail = () => {
                             >
                                 <Box sx={{ position: 'relative', mb: 3 }}>
                                     <Box
-                                        component="img"
-                                        src={event.eventImage || '/event-placeholder.jpg'}
-                                        alt={event.title}
-                                        sx={{
-                                            width: '100%',
-                                            height: '300px',
-                                            objectFit: 'cover',
-                                            borderRadius: '12px',
-                                            mb: 3
-                                        }}
-                                    />
-                                    <Box
                                         sx={{
                                             position: 'absolute',
                                             top: 16,
@@ -429,10 +446,6 @@ const EventDetail = () => {
                                         </IconButton>
                                     </Box>
                                 </Box>
-
-                                <Typography variant="h4" sx={{ color: '#1a237e', mb: 2, fontWeight: 600 }}>
-                                    {event.title}
-                                </Typography>
 
                                 <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
                                     <Chip
@@ -505,72 +518,108 @@ const EventDetail = () => {
                                             size="large"
                                             disabled
                                             sx={{
-                                                bgcolor: '#FFA726',
+                                                bgcolor: '#FFA000',
                                                 '&.Mui-disabled': {
-                                                    bgcolor: '#FFA726',
+                                                    bgcolor: '#FFA000',
                                                     color: 'white'
                                                 },
                                                 borderRadius: '8px',
                                                 px: 4
                                             }}
                                         >
-                                            Organizatör Onayı Bekleniyor
+                                            Onay Bekleniyor
                                         </Button>
-                                    ) : (
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    ) : participationStatus === 'REJECTED' ? (
+                                        <Button
+                                            variant="contained"
+                                            size="large"
+                                            disabled
+                                            sx={{
+                                                bgcolor: '#D32F2F',
+                                                '&.Mui-disabled': {
+                                                    bgcolor: '#D32F2F',
+                                                    color: 'white'
+                                                },
+                                                borderRadius: '8px',
+                                                px: 4
+                                            }}
+                                        >
+                                            Reddedildi
+                                        </Button>
+                                    ) : user?.id !== event.organizer?.id ? (
+                                        participationStatus ? (
+                                            <Button
+                                                variant="contained"
+                                                size="large"
+                                                disabled
+                                                sx={{
+                                                    bgcolor: '#9E9E9E',
+                                                    '&.Mui-disabled': {
+                                                        bgcolor: '#9E9E9E',
+                                                        color: 'white'
+                                                    },
+                                                    borderRadius: '8px',
+                                                    px: 4
+                                                }}
+                                            >
+                                                {participationStatus === 'APPROVED' ? 'Katıldınız' : 'Onay Bekleniyor'}
+                                            </Button>
+                                        ) : (
                                             <Button
                                                 variant="contained"
                                                 size="large"
                                                 onClick={handleJoinEvent}
-                                                disabled={joinLoading}
+                                                disabled={joinLoading || event.participants?.length >= event.maxParticipants}
                                                 sx={{
-                                                    bgcolor: '#1a237e',
-                                                    '&:hover': { bgcolor: '#0d47a1' },
+                                                    bgcolor: event.participants?.length >= event.maxParticipants ? '#9E9E9E' : '#1a237e',
+                                                    '&:hover': {
+                                                        bgcolor: event.participants?.length >= event.maxParticipants ? '#9E9E9E' : '#0d47a1'
+                                                    },
+                                                    '&.Mui-disabled': {
+                                                        bgcolor: '#9E9E9E',
+                                                        color: 'white'
+                                                    },
                                                     borderRadius: '8px',
                                                     px: 4
                                                 }}
                                             >
                                                 {joinLoading ? (
-                                                    <CircularProgress size={24} sx={{ color: 'white' }} />
+                                                    <CircularProgress size={24} color="inherit" />
+                                                ) : event.participants?.length >= event.maxParticipants ? (
+                                                    'Kontenjan Dolu'
                                                 ) : (
                                                     'Katıl'
                                                 )}
                                             </Button>
-                                            {event.paid && (
-                                                <Box
-                                                    sx={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: 1,
-                                                        bgcolor: 'rgba(58, 136, 214, 0.08)',
-                                                        color: '#3083D5',
-                                                        py: 1.5,
-                                                        px: 3,
-                                                        borderRadius: '12px',
-                                                        fontWeight: 600,
-                                                        fontSize: '1.1rem',
-                                                        boxShadow: '0 2px 8px rgba(68, 145, 225, 0.15)',
-                                                        border: '1px solid rgba(58, 136, 214, 0.2)',
-                                                        transition: 'all 0.2s ease',
-                                                        '&:hover': {
-                                                            transform: 'translateY(-2px)',
-                                                            boxShadow: '0 4px 12px rgba(98, 159, 234, 0.2)'
-                                                        }
-                                                    }}
-                                                >
-                                                    
-                                                    {event.price} ₺
-                                                </Box>
-                                            )}
-                                        </Box>
+                                        )
+                                    ) : (
+                                        <Button
+                                            variant="contained"
+                                            size="large"
+                                            disabled
+                                            sx={{
+                                                bgcolor: '#9E9E9E',
+                                                '&.Mui-disabled': {
+                                                    bgcolor: '#9E9E9E',
+                                                    color: 'white'
+                                                },
+                                                borderRadius: '8px',
+                                                px: 4
+                                            }}
+                                        >
+                                            Organizatör
+                                        </Button>
                                     )}
                                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                                        <Typography variant="body2" color="text.secondary">
-                                            {event.maxParticipants} kişilik kontenjan
+                                        <Typography variant="body2" sx={{ 
+                                            color: event.participants?.length >= event.maxParticipants ? 'error.main' : 'text.secondary',
+                                            fontWeight: 'medium'
+                                        }}>
+                                            {event.participants?.length || 0}/{event.maxParticipants} kişilik kontenjan
                                         </Typography>
-                                        {event.participants && (
-                                            <Typography variant="body2" color="text.secondary">
-                                                {event.participants.length} katılımcı
+                                        {event.participants?.length >= event.maxParticipants && (
+                                            <Typography variant="body2" color="error" sx={{ fontWeight: 'medium' }}>
+                                                Kontenjan Dolu
                                             </Typography>
                                         )}
                                     </Box>
@@ -586,50 +635,52 @@ const EventDetail = () => {
                         <Grid item xs={12} md={4}>
                             {/* Organizatör Bilgileri */}
                             <Paper
-                                elevation={0}
+                                elevation={3}
                                 sx={{
                                     p: 3,
-                                    borderRadius: '16px',
                                     bgcolor: 'rgba(255, 255, 255, 0.95)',
                                     backdropFilter: 'blur(20px)',
                                     mb: 3
                                 }}
                             >
-                                <Typography variant="h6" sx={{ color: '#1a237e', mb: 3, fontWeight: 600 }}>
+                                <Typography variant="h6" sx={{ color: '#1a237e', mb: 2, fontWeight: 600 }}>
                                     Organizatör
                                 </Typography>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                    <Tooltip title={`Organizatör: ${event.organizer?.firstName || ''} ${event.organizer?.lastName || ''}`}>
-                                        <Avatar
-                                            src={event.organizer?.profilePicture}
-                                            alt={`${event.organizer?.firstName} ${event.organizer?.lastName}`}
-                                            sx={{
-                                                width: 64,
-                                                height: 64,
-                                                border: '3px solid white',
-                                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                                cursor: 'pointer',
-                                                '&:hover': {
-                                                    transform: 'scale(1.05)',
-                                                    transition: 'transform 0.2s'
-                                                }
-                                            }}
-                                        />
-                                    </Tooltip>
-                                    <Box>
-                                        <Typography
-                                            variant="subtitle1"
-                                            sx={{
-                                                color: '#1a237e',
-                                                fontWeight: 600
-                                            }}
-                                        >
-                                            {event.organizer?.firstName} {event.organizer?.lastName}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            {event.organizer?.email}
-                                        </Typography>
-                                    </Box>
+                                <Box 
+                                    sx={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center',
+                                        cursor: 'pointer',
+                                        '&:hover': {
+                                            opacity: 0.8
+                                        }
+                                    }}
+                                    onClick={() => handleOrganizerClick(event?.organizer?.id)}
+                                >
+                                    <Avatar
+                                        src={event?.organizer?.profilePicture}
+                                        alt={`${event?.organizer?.firstName} ${event?.organizer?.lastName}`}
+                                        sx={{
+                                            width: 48,
+                                            height: 48,
+                                            mr: 2,
+                                            border: '2px solid white',
+                                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                            '&:hover': {
+                                                transform: 'scale(1.05)',
+                                                transition: 'transform 0.2s'
+                                            }
+                                        }}
+                                    />
+                                    <Typography
+                                        variant="subtitle1"
+                                        sx={{
+                                            color: '#1a237e',
+                                            fontWeight: 600
+                                        }}
+                                    >
+                                        {event?.organizer?.firstName} {event?.organizer?.lastName}
+                                    </Typography>
                                 </Box>
                             </Paper>
 
@@ -783,6 +834,8 @@ const EventDetail = () => {
                                     )}
                                 </Paper>
                             )}
+
+                          
                         </Grid>
                     </Grid>
                 </Paper>

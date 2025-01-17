@@ -14,6 +14,8 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Settings from '../pages/Settings';
 import Events from '../pages/Events';
+import UpdateEvent from '../pages/UpdateEvent';
+import UserProfile from '../pages/UserProfile';
 
 // Korumalı Route bileşeni
 const ProtectedRoute = ({ children }) => {
@@ -100,10 +102,10 @@ const AppRoutes = () => {
           }
         />
         <Route
-          path="/users/:userId"
+          path="/users/:id"
           element={
             <ProtectedRoute>
-              <Profile />
+              <UserProfile />
             </ProtectedRoute>
           }
         />
@@ -128,6 +130,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <Events />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/events/:id/edit"
+          element={
+            <ProtectedRoute>
+              <UpdateEvent />
             </ProtectedRoute>
           }
         />

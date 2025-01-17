@@ -206,7 +206,7 @@ const Profile = () => {
   const formatDate = (dateString) => {
     try {
       if (!dateString) return 'Doğum tarihi belirtilmemiş';
-      const date = new Date(dateString);
+      const date = new Date(dateString + 'T00:00:00');
       if (isNaN(date.getTime())) return 'Doğum tarihi belirtilmemiş';
       return format(date, 'dd/MM/yyyy', { locale: tr });
     } catch (error) {
