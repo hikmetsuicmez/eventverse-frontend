@@ -68,10 +68,11 @@ const Login = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(180deg, #001E3C 0%, #0A47A9 100%)',
-        pt: '64px',
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: '#0A1929',
+        py: 8
       }}
     >
       <Container maxWidth="sm">
@@ -79,20 +80,19 @@ const Login = () => {
           elevation={3}
           sx={{
             p: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            background: 'rgba(255, 255, 255, 0.95)',
             borderRadius: '16px',
+            bgcolor: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
           }}
         >
           <Typography
-            component="h1"
             variant="h4"
+            align="center"
             sx={{
               mb: 4,
-              color: '#001E3C',
-              fontWeight: 700,
+              color: '#fff',
+              fontWeight: 600
             }}
           >
             Giriş Yap
@@ -111,7 +111,7 @@ const Login = () => {
             </Alert>
           )}
 
-          <Box component="form" onSubmit={formik.handleSubmit} sx={{ width: '100%' }}>
+          <form onSubmit={formik.handleSubmit} sx={{ width: '100%' }}>
             <TextField
               fullWidth
               label="E-posta"
@@ -122,10 +122,29 @@ const Login = () => {
               onBlur={formik.handleBlur}
               error={formik.touched.email && Boolean(formik.errors.email)}
               helperText={formik.touched.email && formik.errors.email}
-              sx={{ mb: 2 }}
-              disabled={formik.isSubmitting}
-              InputProps={{
-                autoComplete: 'email'
+              sx={{
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
+                  color: '#fff',
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.23)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#90caf9',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  '&.Mui-focused': {
+                    color: '#90caf9',
+                  },
+                },
+                '& .MuiFormHelperText-root': {
+                  color: '#f44336',
+                },
               }}
             />
 
@@ -139,59 +158,64 @@ const Login = () => {
               onBlur={formik.handleBlur}
               error={formik.touched.password && Boolean(formik.errors.password)}
               helperText={formik.touched.password && formik.errors.password}
-              sx={{ mb: 3 }}
-              disabled={formik.isSubmitting}
-              InputProps={{
-                autoComplete: 'current-password',
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                      disabled={formik.isSubmitting}
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
+              sx={{
+                mb: 3,
+                '& .MuiOutlinedInput-root': {
+                  color: '#fff',
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.23)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#90caf9',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  '&.Mui-focused': {
+                    color: '#90caf9',
+                  },
+                },
+                '& .MuiFormHelperText-root': {
+                  color: '#f44336',
+                },
               }}
             />
 
             <Button
-              type="submit"
               fullWidth
+              type="submit"
               variant="contained"
               disabled={formik.isSubmitting}
               sx={{
-                bgcolor: '#2196F3',
-                color: 'white',
                 py: 1.5,
-                fontSize: '1.1rem',
-                textTransform: 'none',
-                '&:hover': {
-                  bgcolor: '#1976D2',
-                },
+                bgcolor: '#1976d2',
+                '&:hover': { bgcolor: '#1565c0' },
+                mb: 2
               }}
             >
-              {formik.isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Giriş Yap'}
+              {formik.isSubmitting ? <CircularProgress size={24} /> : 'Giriş Yap'}
             </Button>
+          </form>
 
-            <Box sx={{ mt: 2, textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">
-                Hesabınız yok mu?{' '}
-                <Link
-                  to="/register"
-                  style={{
-                    color: '#2196F3',
-                    textDecoration: 'none',
-                    fontWeight: 500,
-                  }}
-                >
-                  Kayıt Ol
-                </Link>
-              </Typography>
-            </Box>
-          </Box>
+          <Typography
+            align="center"
+            sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
+          >
+            Hesabınız yok mu?{' '}
+            <Link
+              to="/register"
+              style={{
+                color: '#90caf9',
+                textDecoration: 'none',
+                fontWeight: 500
+              }}
+            >
+              Kayıt Ol
+            </Link>
+          </Typography>
         </Paper>
       </Container>
     </Box>

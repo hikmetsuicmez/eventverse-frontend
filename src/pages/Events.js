@@ -130,21 +130,21 @@ const Events = () => {
         break;
       case 'searchText':
         if (value) {
-          addSelectedFilter('search', value);
+        addSelectedFilter('search', value);
         } else {
           addSelectedFilter('search', null);
         }
         break;
       case 'isPaid':
         if (value !== null) {
-          addSelectedFilter('paid', value ? 'Ücretli' : 'Ücretsiz');
+        addSelectedFilter('paid', value ? 'Ücretli' : 'Ücretsiz');
         } else {
           addSelectedFilter('paid', null);
         }
         break;
       case 'hasAgeLimit':
         if (value !== null) {
-          addSelectedFilter('ageLimit', value ? 'Yaş Sınırlı' : 'Yaş Sınırsız');
+        addSelectedFilter('ageLimit', value ? 'Yaş Sınırlı' : 'Yaş Sınırsız');
         } else {
           addSelectedFilter('ageLimit', null);
         }
@@ -238,27 +238,27 @@ const Events = () => {
 
   useEffect(() => {
     const filterData = {
-      searchText: searchParams.searchText || null,
-      startDate: searchParams.startDate || null,
-      endDate: searchParams.endDate || null,
-      categories: searchParams.categories.length > 0 ? searchParams.categories : null,
-      minPrice: searchParams.minPrice || null,
-      maxPrice: searchParams.maxPrice || null,
-      minAge: searchParams.minAge || null,
-      maxAge: searchParams.maxAge || null,
-      isPaid: searchParams.isPaid,
-      hasAgeLimit: searchParams.hasAgeLimit
+        searchText: searchParams.searchText || null,
+        startDate: searchParams.startDate || null,
+        endDate: searchParams.endDate || null,
+        categories: searchParams.categories.length > 0 ? searchParams.categories : null,
+        minPrice: searchParams.minPrice || null,
+        maxPrice: searchParams.maxPrice || null,
+        minAge: searchParams.minAge || null,
+        maxAge: searchParams.maxAge || null,
+        isPaid: searchParams.isPaid,
+        hasAgeLimit: searchParams.hasAgeLimit
     };
 
     EventService.filterEvents(filterData, page, 8, searchParams.sortBy, searchParams.sortOrder)
-      .then(response => {
-        setEvents(response.data.content);
-        setTotalPages(response.data.totalPages);
-      })
-      .catch(error => {
-        console.error('Error fetching events:', error);
-        setError('Etkinlikler yüklenirken bir hata oluştu');
-      });
+        .then(response => {
+            setEvents(response.data.content);
+            setTotalPages(response.data.totalPages);
+        })
+        .catch(error => {
+            console.error('Error fetching events:', error);
+            setError('Etkinlikler yüklenirken bir hata oluştu');
+        });
   }, [searchParams.searchText, searchParams.startDate, searchParams.endDate, searchParams.categories, searchParams.minPrice, searchParams.maxPrice, searchParams.minAge, searchParams.maxAge, searchParams.isPaid, searchParams.hasAgeLimit, searchParams.sortBy, searchParams.sortOrder, page]);
 
   const sortOptions = [
@@ -654,10 +654,10 @@ const Events = () => {
                 }
 
                 return (
-                  <Chip
-                    key={index}
+                <Chip
+                  key={index}
                     label={displayValue}
-                    onDelete={() => handleFilterRemove(filter.type)}
+                  onDelete={() => handleFilterRemove(filter.type)}
                     sx={{
                       bgcolor: 'primary.main',
                       color: 'white',
@@ -859,15 +859,15 @@ const Events = () => {
                     color="primary"
                     size="large"
                     sx={{
-                      '& .MuiPaginationItem-root': {
-                        color: 'white',
-                        '&.Mui-selected': {
-                          bgcolor: 'primary.main',
+                        '& .MuiPaginationItem-root': {
+                            color: 'white',
+                            '&.Mui-selected': {
+                                bgcolor: 'primary.main',
                         },
                         '&:hover': {
                           bgcolor: 'rgba(255, 255, 255, 0.1)',
                         },
-                      }
+                        }
                     }}
                   />
                 </Box>

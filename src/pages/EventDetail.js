@@ -350,28 +350,48 @@ const EventDetail = () => {
     return (
         <Box sx={{ pt: '84px', pb: 8, bgcolor: '#0A1929', minHeight: '100vh' }}>
             <Container maxWidth="lg">
-                <Paper elevation={0} sx={{ p: 4, borderRadius: '16px' }}>
+                <Paper elevation={3} sx={{ 
+                    p: 4, 
+                    borderRadius: '16px',
+                    bgcolor: 'rgba(255, 255, 255, 0.05)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-                        <Typography variant="h4" sx={{ color: '#1a237e', fontWeight: 600 }}>
+                        <Typography variant="h4" sx={{ 
+                            color: '#fff',
+                            fontWeight: 600,
+                            textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                        }}>
                             {event?.title}
                         </Typography>
                         {user?.id === event.organizer?.id && (
                             <Button
                                 variant="contained"
-                                color="primary"
                                 startIcon={<Edit />}
                                 onClick={() => navigate(`/events/${id}/edit`)}
                                 sx={{ 
-                                    backgroundColor: '#1a237e',
-                                    '&:hover': { backgroundColor: '#0d47a1' }
+                                    bgcolor: 'rgba(63, 81, 181, 0.8)',
+                                    '&:hover': { 
+                                        bgcolor: 'rgba(63, 81, 181, 1)'
+                                    }
                                 }}
                             >
                                 Düzenle
                             </Button>
                         )}
                     </Box>
-                    {/* Etkinlik Görseli */}
-                    <Box sx={{ width: '100%', height: 400, position: 'relative', mb: 4 }}>
+
+                    {/* Ana içerik kısmı */}
+                    <Box sx={{ 
+                        width: '100%', 
+                        height: 400, 
+                        position: 'relative', 
+                        mb: 4,
+                        borderRadius: '16px',
+                        overflow: 'hidden',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                    }}>
                         <Box
                             component="img"
                             src={getImageUrl(event)}
@@ -379,8 +399,7 @@ const EventDetail = () => {
                             sx={{
                                 width: '100%',
                                 height: '100%',
-                                objectFit: 'cover',
-                                borderRadius: '16px'
+                                objectFit: 'cover'
                             }}
                         />
                     </Box>
@@ -399,32 +418,27 @@ const EventDetail = () => {
                     <Grid container spacing={3}>
                         {/* Sol Taraf - Etkinlik Detayları */}
                         <Grid item xs={12} md={8}>
-                            <Paper
-                                elevation={0}
-                                sx={{
-                                    p: 3,
-                                    borderRadius: '16px',
-                                    bgcolor: 'rgba(255, 255, 255, 0.95)',
-                                    backdropFilter: 'blur(20px)'
-                                }}
-                            >
+                            <Paper elevation={3} sx={{
+                                p: 3,
+                                borderRadius: '12px',
+                                bgcolor: 'rgba(255, 255, 255, 0.05)',
+                                backdropFilter: 'blur(10px)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)'
+                            }}>
                                 <Box sx={{ position: 'relative', mb: 3 }}>
-                                    <Box
-                                        sx={{
-                                            position: 'absolute',
-                                            top: 16,
-                                            right: 16,
-                                            display: 'flex',
-                                            gap: 1
-                                        }}
-                                    >
+                                    <Box sx={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        right: 0,
+                                        display: 'flex',
+                                        gap: 1
+                                    }}>
                                         <IconButton
                                             onClick={handleFavoriteClick}
                                             disabled={favoriteLoading}
                                             sx={{
-                                                bgcolor: 'white',
-                                                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' },
-                                                '&.Mui-disabled': { bgcolor: 'rgba(255, 255, 255, 0.7)' }
+                                                bgcolor: 'rgba(255, 255, 255, 0.1)',
+                                                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.2)' }
                                             }}
                                         >
                                             {favoriteLoading ? (
@@ -432,67 +446,70 @@ const EventDetail = () => {
                                             ) : isLiked ? (
                                                 <Favorite sx={{ color: '#e91e63' }} />
                                             ) : (
-                                                <FavoriteBorder sx={{ color: '#666' }} />
+                                                <FavoriteBorder sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
                                             )}
                                         </IconButton>
                                         <IconButton
-                                            sx={{
-                                                bgcolor: 'white',
-                                                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' }
-                                            }}
                                             onClick={handleShare}
+                                            sx={{
+                                                bgcolor: 'rgba(255, 255, 255, 0.1)',
+                                                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.2)' }
+                                            }}
                                         >
-                                            <Share sx={{ color: '#666' }} />
+                                            <Share sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
                                         </IconButton>
                                     </Box>
                                 </Box>
 
                                 <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
                                     <Chip
-                                        icon={<CalendarMonth sx={{ fontSize: 18 }} />}
+                                        icon={<CalendarMonth sx={{ color: '#90caf9' }} />}
                                         label={`${formatDate(event.date)} ${event.eventTime || ''}`}
-                                        sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}
+                                        sx={{ 
+                                            bgcolor: 'rgba(144, 202, 249, 0.2)',
+                                            color: '#90caf9',
+                                            border: '1px solid rgba(144, 202, 249, 0.3)'
+                                        }}
                                     />
                                     <Chip
-                                        icon={<LocationOn sx={{ fontSize: 18 }} />}
+                                        icon={<LocationOn sx={{ color: '#90caf9' }} />}
                                         label={event.location}
-                                        sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}
+                                        sx={{ 
+                                            bgcolor: 'rgba(144, 202, 249, 0.2)',
+                                            color: '#90caf9',
+                                            border: '1px solid rgba(144, 202, 249, 0.3)'
+                                        }}
                                     />
                                     <Chip
-                                        icon={<Group sx={{ fontSize: 18 }} />}
+                                        icon={<Group sx={{ color: '#90caf9' }} />}
                                         label={`${event.maxParticipants} Katılımcı`}
-                                        sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}
+                                        sx={{ 
+                                            bgcolor: 'rgba(144, 202, 249, 0.2)',
+                                            color: '#90caf9',
+                                            border: '1px solid rgba(144, 202, 249, 0.3)'
+                                        }}
                                     />
                                     {event.hasAgeLimit && event.ageLimit > 0 && (
                                         <Chip
-                                            icon={<Warning sx={{ fontSize: 18 }} />}
+                                            icon={<Warning sx={{ color: '#ffb74d' }} />}
                                             label={`+${event.ageLimit} Yaş`}
-                                            sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}
+                                            sx={{ 
+                                                bgcolor: 'rgba(255, 183, 77, 0.2)',
+                                                color: '#ffb74d',
+                                                border: '1px solid rgba(255, 183, 77, 0.3)'
+                                            }}
                                         />
                                     )}
                                 </Box>
 
-                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                    <CalendarMonth sx={{ color: '#1a237e', mr: 1 }} />
-                                    <Typography variant="body1">
-                                        {event?.date ? format(new Date(event.date), 'dd MMMM yyyy', { locale: tr }) : 'Tarih belirtilmemiş'}
-                                    </Typography>
-                                </Box>
-                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                    <AccessTime sx={{ color: '#1a237e', mr: 1 }} />
-                                    <Typography variant="body1">
-                                        {event?.eventTime || 'Saat belirtilmemiş'}
-                                    </Typography>
-                                </Box>
-
-                                <Typography variant="h6" sx={{ color: '#1a237e', mb: 2, fontWeight: 600 }}>
+                                <Typography variant="h6" sx={{ color: '#90caf9', mb: 2, fontWeight: 500 }}>
                                     Etkinlik Açıklaması
                                 </Typography>
-                                <Typography variant="body1" sx={{ color: '#333', mb: 3, lineHeight: 1.7 }}>
+                                <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.9)', mb: 3, lineHeight: 1.7 }}>
                                     {event.description}
                                 </Typography>
 
-                                <Divider sx={{ my: 3 }} />
+                                <Divider sx={{ my: 3, bgcolor: 'rgba(255, 255, 255, 0.1)' }} />
 
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     {participationStatus === 'APPROVED' ? (
@@ -626,24 +643,82 @@ const EventDetail = () => {
                                 </Box>
 
                                 <Box sx={{ mt: 3 }}>
-                                    <CommentSection eventId={event.id} currentUser={user} />
+                                    <CommentSection 
+                                        eventId={event.id} 
+                                        currentUser={user} 
+                                        sx={{
+                                            '& .MuiTypography-root': {
+                                                color: '#ffffff !important'
+                                            },
+                                            '& .MuiTypography-h6': {
+                                                color: '#90caf9 !important',
+                                                fontWeight: 500,
+                                                mb: 2
+                                            },
+                                            '& .comment-author': {
+                                                color: '#90caf9 !important',
+                                                fontWeight: 500
+                                            },
+                                            '& .comment-text': {
+                                                color: '#ffffff !important',
+                                                fontSize: '0.95rem',
+                                                lineHeight: 1.5,
+                                                fontWeight: 400
+                                            },
+                                            '& .comment-date': {
+                                                color: 'rgba(255, 255, 255, 0.6) !important',
+                                                fontSize: '0.8rem'
+                                            },
+                                            '& .MuiInputBase-root': {
+                                                color: '#ffffff',
+                                                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                                borderRadius: '8px',
+                                                padding: '8px 12px',
+                                                '&::before': {
+                                                    borderColor: 'rgba(255, 255, 255, 0.2)'
+                                                },
+                                                '&:hover:not(.Mui-disabled)::before': {
+                                                    borderColor: 'rgba(255, 255, 255, 0.4)'
+                                                },
+                                                '&.Mui-focused::before': {
+                                                    borderColor: '#90caf9'
+                                                }
+                                            },
+                                            '& .MuiCard-root': {
+                                                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                                backdropFilter: 'blur(10px)',
+                                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                marginBottom: 2
+                                            },
+                                            '& .MuiCardContent-root': {
+                                                padding: '12px 16px'
+                                            },
+                                            '& .reply-button': {
+                                                color: '#90caf9',
+                                                '&:hover': {
+                                                    backgroundColor: 'rgba(144, 202, 249, 0.1)'
+                                                }
+                                            },
+                                            '& .MuiAvatar-root': {
+                                                border: '2px solid rgba(144, 202, 249, 0.3)'
+                                            }
+                                        }}
+                                    />
                                 </Box>
                             </Paper>
                         </Grid>
 
-                        {/* Sağ Taraf - Organizatör Bilgileri, Harita ve Katılımcılar */}
+                        {/* Sağ Taraf - Organizatör Bilgileri ve Harita */}
                         <Grid item xs={12} md={4}>
-                            {/* Organizatör Bilgileri */}
-                            <Paper
-                                elevation={3}
-                                sx={{
-                                    p: 3,
-                                    bgcolor: 'rgba(255, 255, 255, 0.95)',
-                                    backdropFilter: 'blur(20px)',
-                                    mb: 3
-                                }}
-                            >
-                                <Typography variant="h6" sx={{ color: '#1a237e', mb: 2, fontWeight: 600 }}>
+                            <Paper elevation={3} sx={{
+                                p: 3,
+                                borderRadius: '12px',
+                                bgcolor: 'rgba(255, 255, 255, 0.05)',
+                                backdropFilter: 'blur(10px)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                mb: 3
+                            }}>
+                                <Typography variant="h6" sx={{ color: '#90caf9', mb: 2, fontWeight: 500 }}>
                                     Organizatör
                                 </Typography>
                                 <Box 
@@ -664,8 +739,8 @@ const EventDetail = () => {
                                             width: 48,
                                             height: 48,
                                             mr: 2,
-                                            border: '2px solid white',
-                                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                            border: '2px solid #90caf9',
+                                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
                                             '&:hover': {
                                                 transform: 'scale(1.05)',
                                                 transition: 'transform 0.2s'
@@ -675,8 +750,8 @@ const EventDetail = () => {
                                     <Typography
                                         variant="subtitle1"
                                         sx={{
-                                            color: '#1a237e',
-                                            fontWeight: 600
+                                            color: 'rgba(255, 255, 255, 0.9)',
+                                            fontWeight: 500
                                         }}
                                     >
                                         {event?.organizer?.firstName} {event?.organizer?.lastName}
@@ -684,32 +759,30 @@ const EventDetail = () => {
                                 </Box>
                             </Paper>
 
-                            {/* Konum */}
-                            <Paper
-                                elevation={0}
-                                sx={{
-                                    p: 3,
-                                    borderRadius: '16px',
-                                    bgcolor: 'rgba(255, 255, 255, 0.95)',
-                                    backdropFilter: 'blur(20px)',
-                                    mb: 3
-                                }}
-                            >
-                                <Typography variant="h6" sx={{ color: '#1a237e', mb: 3, fontWeight: 600 }}>
+                            {/* Konum kartı */}
+                            <Paper elevation={3} sx={{
+                                p: 3,
+                                borderRadius: '12px',
+                                bgcolor: 'rgba(255, 255, 255, 0.05)',
+                                backdropFilter: 'blur(10px)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                mb: 3
+                            }}>
+                                <Typography variant="h6" sx={{ color: '#90caf9', mb: 2, fontWeight: 500 }}>
                                     Konum
                                 </Typography>
                                 <EventMap event={event} />
                                 <Typography
                                     variant="body2"
                                     sx={{
-                                        color: '#666',
+                                        color: 'rgba(255, 255, 255, 0.9)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         mt: 2,
                                         mb: 2
                                     }}
                                 >
-                                    <LocationOn sx={{ fontSize: 18, mr: 1, color: '#1a237e' }} />
+                                    <LocationOn sx={{ fontSize: 18, mr: 1, color: '#90caf9' }} />
                                     {event.location}
                                 </Typography>
                                 {event?.latitude && event?.longitude && (
@@ -722,11 +795,11 @@ const EventDetail = () => {
                                             window.open(url, '_blank');
                                         }}
                                         sx={{
-                                            borderColor: '#1a237e',
-                                            color: '#1a237e',
+                                            borderColor: '#90caf9',
+                                            color: '#90caf9',
                                             '&:hover': {
-                                                borderColor: '#0d47a1',
-                                                bgcolor: 'rgba(26, 35, 126, 0.04)'
+                                                borderColor: '#64b5f6',
+                                                bgcolor: 'rgba(144, 202, 249, 0.1)'
                                             }
                                         }}
                                     >
@@ -735,18 +808,16 @@ const EventDetail = () => {
                                 )}
                             </Paper>
 
-                            {/* Katılımcılar Listesi - Sadece organizatör için görünür */}
+                            {/* Katılımcılar kartı */}
                             {user?.id === event.organizer?.id && (
-                                <Paper
-                                    elevation={0}
-                                    sx={{
-                                        p: 3,
-                                        borderRadius: '16px',
-                                        bgcolor: 'rgba(255, 255, 255, 0.95)',
-                                        backdropFilter: 'blur(20px)'
-                                    }}
-                                >
-                                    <Typography variant="h6" sx={{ color: '#1a237e', mb: 3, fontWeight: 600 }}>
+                                <Paper elevation={3} sx={{
+                                    p: 3,
+                                    borderRadius: '12px',
+                                    bgcolor: 'rgba(255, 255, 255, 0.05)',
+                                    backdropFilter: 'blur(10px)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                                }}>
+                                    <Typography variant="h6" sx={{ color: '#90caf9', mb: 2, fontWeight: 500 }}>
                                         Katılımcılar
                                     </Typography>
                                     {event.participants && event.participants.length > 0 ? (
@@ -755,7 +826,7 @@ const EventDetail = () => {
                                                 <ListItem
                                                     key={participant.id}
                                                     sx={{
-                                                        bgcolor: 'rgba(255, 255, 255, 0.8)',
+                                                        bgcolor: 'rgba(255, 255, 255, 0.1)',
                                                         borderRadius: '8px',
                                                         mb: 1,
                                                         '&:last-child': { mb: 0 }
@@ -768,8 +839,8 @@ const EventDetail = () => {
                                                                     disabled={participantActionLoading}
                                                                     onClick={() => handleParticipantAction(participant.id, 'APPROVED')}
                                                                     sx={{
-                                                                        color: 'success.main',
-                                                                        '&:hover': { bgcolor: 'success.light' }
+                                                                        color: '#4caf50',
+                                                                        '&:hover': { bgcolor: 'rgba(76, 175, 80, 0.2)' }
                                                                     }}
                                                                 >
                                                                     <Check />
@@ -779,8 +850,8 @@ const EventDetail = () => {
                                                                     disabled={participantActionLoading}
                                                                     onClick={() => handleParticipantAction(participant.id, 'REJECTED')}
                                                                     sx={{
-                                                                        color: 'error.main',
-                                                                        '&:hover': { bgcolor: 'error.light' }
+                                                                        color: '#f44336',
+                                                                        '&:hover': { bgcolor: 'rgba(244, 67, 54, 0.2)' }
                                                                     }}
                                                                 >
                                                                     <Close />
@@ -793,10 +864,15 @@ const EventDetail = () => {
                                                         <Avatar
                                                             src={participant.user?.profilePicture}
                                                             alt={`${participant.user?.firstName} ${participant.user?.lastName}`}
+                                                            sx={{ border: '2px solid #90caf9' }}
                                                         />
                                                     </ListItemAvatar>
                                                     <ListItemText
-                                                        primary={`${participant.user?.firstName} ${participant.user?.lastName}`}
+                                                        primary={
+                                                            <Typography sx={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+                                                                {`${participant.user?.firstName} ${participant.user?.lastName}`}
+                                                            </Typography>
+                                                        }
                                                         secondary={
                                                             <Chip
                                                                 label={
@@ -810,16 +886,16 @@ const EventDetail = () => {
                                                                 sx={{
                                                                     bgcolor:
                                                                         participant.status === 'PENDING'
-                                                                            ? 'warning.light'
+                                                                            ? 'rgba(255, 183, 77, 0.2)'
                                                                             : participant.status === 'APPROVED'
-                                                                                ? 'success.light'
-                                                                                : 'error.light',
+                                                                                ? 'rgba(76, 175, 80, 0.2)'
+                                                                                : 'rgba(244, 67, 54, 0.2)',
                                                                     color:
                                                                         participant.status === 'PENDING'
-                                                                            ? 'warning.dark'
+                                                                            ? '#ffb74d'
                                                                             : participant.status === 'APPROVED'
-                                                                                ? 'success.dark'
-                                                                                : 'error.dark'
+                                                                                ? '#81c784'
+                                                                                : '#e57373'
                                                                 }}
                                                             />
                                                         }
@@ -828,14 +904,12 @@ const EventDetail = () => {
                                             ))}
                                         </List>
                                     ) : (
-                                        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+                                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'center' }}>
                                             Henüz katılımcı yok
                                         </Typography>
                                     )}
                                 </Paper>
                             )}
-
-                          
                         </Grid>
                     </Grid>
                 </Paper>

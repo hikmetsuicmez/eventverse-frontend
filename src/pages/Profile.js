@@ -24,7 +24,8 @@ import {
   Tooltip,
   Alert,
   Slider,
-  Stack
+  Stack,
+  useTheme
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -53,7 +54,6 @@ import FavoriteService from '../services/favorite.service';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { useTheme } from '../context/ThemeContext';
 import ReactCrop, { makeAspectCrop, centerCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
@@ -77,7 +77,7 @@ const Profile = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [error, setError] = useState('');
-  const { theme } = useTheme();
+  const theme = useTheme();
   const [imageScale, setImageScale] = useState(1);
   const [imageRotation, setImageRotation] = useState(0);
   const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
