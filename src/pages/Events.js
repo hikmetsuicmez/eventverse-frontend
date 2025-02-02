@@ -21,7 +21,7 @@ import {
   Chip,
   Stack
 } from '@mui/material';
-import { Search, FilterList, Clear, ClearAll } from '@mui/icons-material';
+import { Search, FilterList, Clear, ClearAll, LocationOn, CalendarToday, Category } from '@mui/icons-material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -29,6 +29,7 @@ import { tr } from 'date-fns/locale';
 import EventService from '../services/event.service';
 import EventCard from '../components/EventCard';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 const Events = () => {
   const [events, setEvents] = useState([]);
@@ -41,7 +42,6 @@ const Events = () => {
     startDate: null,
     endDate: null,
     categories: [],
-    location: '',
     searchText: '',
     minPrice: 0,
     maxPrice: 1000,
@@ -67,19 +67,6 @@ const Events = () => {
     'Sağlık'
   ];
 
-  const locations = [
-    'İstanbul',
-    'Ankara',
-    'İzmir',
-    'Bursa',
-    'Antalya',
-    'Adana',
-    'Konya',
-    'Gaziantep',
-    'Şanlıurfa',
-    'Kocaeli'
-  ];
-
   const addSelectedFilter = (type, value) => {
     if (value) {
       setSelectedFilters(prev => [...prev.filter(f => f.type !== type), { type, value }]);
@@ -89,6 +76,48 @@ const Events = () => {
   };
 
   const handleFilterChange = (field, value) => {
+    if (field === 'startDate' || field === 'endDate') {
+      const date = value || null;
+      setSearchParams(prev => ({ ...prev, [field]: date, page: 0 }));
+      
+      const start = field === 'startDate' ? date : searchParams.startDate;
+      const end = field === 'endDate' ? date : searchParams.endDate;
+      
+      if (start && end) {
+        const dateRange = `${format(new Date(start), 'dd/MM/yyyy')} - ${format(new Date(end), 'dd/MM/yyyy')}`;
+        addSelectedFilter('date', dateRange);
+      } else {
+        addSelectedFilter('date', null);
+      }
+      return;
+    }
+    
+    if (field === 'minPrice' || field === 'maxPrice') {
+      const newValue = Array.isArray(value) ? value : [value, searchParams.maxPrice];
+      setSearchParams(prev => ({
+        ...prev,
+        minPrice: newValue[0],
+        maxPrice: newValue[1],
+        page: 0
+      }));
+      const priceRange = `${newValue[0]} TL - ${newValue[1]} TL`;
+      addSelectedFilter('price', priceRange);
+      return;
+    }
+    
+    if (field === 'minAge' || field === 'maxAge') {
+      const newValue = Array.isArray(value) ? value : [value, searchParams.maxAge];
+      setSearchParams(prev => ({
+        ...prev,
+        minAge: newValue[0],
+        maxAge: newValue[1],
+        page: 0
+      }));
+      const ageRange = `${newValue[0]} - ${newValue[1]} yaş`;
+      addSelectedFilter('age', ageRange);
+      return;
+    }
+    
     setSearchParams(prev => ({ ...prev, [field]: value, page: 0 }));
     
     switch(field) {
@@ -99,27 +128,26 @@ const Events = () => {
           addSelectedFilter('categories', null);
         }
         break;
-      case 'location':
-        addSelectedFilter('location', value);
-        break;
       case 'searchText':
-        addSelectedFilter('search', value);
-        break;
-      case 'minPrice':
-      case 'maxPrice':
-        const priceRange = `${value[0]} TL - ${value[1]} TL`;
-        addSelectedFilter('price', priceRange);
-        break;
-      case 'minAge':
-      case 'maxAge':
-        const ageRange = `${value[0]} - ${value[1]} yaş`;
-        addSelectedFilter('age', ageRange);
+        if (value) {
+          addSelectedFilter('search', value);
+        } else {
+          addSelectedFilter('search', null);
+        }
         break;
       case 'isPaid':
-        addSelectedFilter('paid', value ? 'Ücretli' : 'Ücretsiz');
+        if (value !== null) {
+          addSelectedFilter('paid', value ? 'Ücretli' : 'Ücretsiz');
+        } else {
+          addSelectedFilter('paid', null);
+        }
         break;
       case 'hasAgeLimit':
-        addSelectedFilter('ageLimit', value ? 'Yaş Sınırlı' : 'Yaş Sınırsız');
+        if (value !== null) {
+          addSelectedFilter('ageLimit', value ? 'Yaş Sınırlı' : 'Yaş Sınırsız');
+        } else {
+          addSelectedFilter('ageLimit', null);
+        }
         break;
       default:
         break;
@@ -155,7 +183,6 @@ const Events = () => {
       startDate: null,
       endDate: null,
       categories: [],
-      location: '',
       searchText: '',
       minPrice: 0,
       maxPrice: 1000,
@@ -181,7 +208,6 @@ const Events = () => {
         startDate: searchParams.startDate ? format(searchParams.startDate, 'yyyy-MM-dd') : null,
         endDate: searchParams.endDate ? format(searchParams.endDate, 'yyyy-MM-dd') : null,
         categories: searchParams.categories.length > 0 ? searchParams.categories : null,
-        location: searchParams.location || null,
         minPrice: searchParams.minPrice !== 0 ? searchParams.minPrice : null,
         maxPrice: searchParams.maxPrice !== 1000 ? searchParams.maxPrice : null,
         minAge: searchParams.minAge !== 0 ? searchParams.minAge : null,
@@ -212,30 +238,28 @@ const Events = () => {
 
   useEffect(() => {
     const filterData = {
-        searchText: searchParams.searchText || null,
-        startDate: searchParams.startDate || null,
-        endDate: searchParams.endDate || null,
-        categories: searchParams.categories.length > 0 ? searchParams.categories : null,
-        location: searchParams.location || null,
-        minPrice: searchParams.minPrice || null,
-        maxPrice: searchParams.maxPrice || null,
-        minAge: searchParams.minAge || null,
-        maxAge: searchParams.maxAge || null,
-        isPaid: searchParams.isPaid,
-        hasAgeLimit: searchParams.hasAgeLimit
+      searchText: searchParams.searchText || null,
+      startDate: searchParams.startDate || null,
+      endDate: searchParams.endDate || null,
+      categories: searchParams.categories.length > 0 ? searchParams.categories : null,
+      minPrice: searchParams.minPrice || null,
+      maxPrice: searchParams.maxPrice || null,
+      minAge: searchParams.minAge || null,
+      maxAge: searchParams.maxAge || null,
+      isPaid: searchParams.isPaid,
+      hasAgeLimit: searchParams.hasAgeLimit
     };
 
     EventService.filterEvents(filterData, page, 8, searchParams.sortBy, searchParams.sortOrder)
-        .then(response => {
-            setEvents(response.data.content);
-            setTotalPages(response.data.totalPages);
-        })
-        .catch(error => {
-            console.error('Error fetching events:', error);
-            setError('Etkinlikler yüklenirken bir hata oluştu');
-        });
-  }, [searchParams.searchText, searchParams.startDate, searchParams.endDate, searchParams.categories, searchParams.location, 
-    searchParams.minPrice, searchParams.maxPrice, searchParams.minAge, searchParams.maxAge, searchParams.isPaid, searchParams.hasAgeLimit, searchParams.sortBy, searchParams.sortOrder, page]);
+      .then(response => {
+        setEvents(response.data.content);
+        setTotalPages(response.data.totalPages);
+      })
+      .catch(error => {
+        console.error('Error fetching events:', error);
+        setError('Etkinlikler yüklenirken bir hata oluştu');
+      });
+  }, [searchParams.searchText, searchParams.startDate, searchParams.endDate, searchParams.categories, searchParams.minPrice, searchParams.maxPrice, searchParams.minAge, searchParams.maxAge, searchParams.isPaid, searchParams.hasAgeLimit, searchParams.sortBy, searchParams.sortOrder, page]);
 
   const sortOptions = [
     { value: "date", label: "Tarih" },
@@ -248,32 +272,38 @@ const Events = () => {
     switch(filterType) {
       case 'categories':
         setSearchParams(prev => ({ ...prev, categories: [] }));
-        break;
-      case 'location':
-        setSearchParams(prev => ({ ...prev, location: '' }));
+        addSelectedFilter('categories', null);
         break;
       case 'search':
         setSearchParams(prev => ({ ...prev, searchText: '' }));
+        addSelectedFilter('search', null);
         break;
       case 'price':
         setSearchParams(prev => ({ ...prev, minPrice: 0, maxPrice: 1000 }));
+        addSelectedFilter('price', null);
         break;
       case 'age':
         setSearchParams(prev => ({ ...prev, minAge: 0, maxAge: 100 }));
+        addSelectedFilter('age', null);
         break;
       case 'paid':
         setSearchParams(prev => ({ ...prev, isPaid: null }));
+        addSelectedFilter('paid', null);
         break;
       case 'ageLimit':
         setSearchParams(prev => ({ ...prev, hasAgeLimit: null }));
+        addSelectedFilter('ageLimit', null);
         break;
       case 'date':
         setSearchParams(prev => ({ ...prev, startDate: null, endDate: null }));
+        addSelectedFilter('date', null);
         break;
       default:
         break;
     }
   };
+
+  const navigate = useNavigate();
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#0A1929', pt: '80px', pb: 8 }}>
@@ -285,21 +315,37 @@ const Events = () => {
         <Grid container spacing={3}>
           {/* Sol Taraf - Filtreler */}
           <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 3, borderRadius: '16px', position: 'sticky', top: '100px' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <FilterList sx={{ mr: 1 }} />
-                <Typography variant="h6">Filtreler</Typography>
+            <Paper 
+              sx={{ 
+                p: 3, 
+                borderRadius: '16px', 
+                position: 'sticky', 
+                top: '100px',
+                bgcolor: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                <FilterList sx={{ mr: 1, color: 'white' }} />
+                <Typography variant="h6" sx={{ color: 'white' }}>Filtreler</Typography>
                 <Button
                   startIcon={<Clear />}
                   onClick={clearFilters}
-                  sx={{ ml: 'auto' }}
+                  sx={{ 
+                    ml: 'auto',
+                    color: 'white',
+                    '&:hover': {
+                      color: 'primary.main',
+                    }
+                  }}
                   size="small"
                 >
                   Temizle
                 </Button>
               </Box>
 
-              <Stack spacing={2}>
+              <Stack spacing={3}>
                 {/* Arama */}
                 <TextField
                   fullWidth
@@ -307,7 +353,24 @@ const Events = () => {
                   value={searchParams.searchText}
                   onChange={(e) => handleFilterChange('searchText', e.target.value)}
                   InputProps={{
-                    startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />
+                    startAdornment: <Search sx={{ mr: 1, color: 'rgba(255,255,255,0.5)' }} />,
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      color: 'white',
+                      '& fieldset': {
+                        borderColor: 'rgba(255,255,255,0.2)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255,255,255,0.4)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255,255,255,0.7)',
+                    },
                   }}
                 />
 
@@ -316,23 +379,130 @@ const Events = () => {
                   fullWidth
                   label="Başlangıç Tarihi"
                   type="date"
-                  value={searchParams.startDate ? format(searchParams.startDate, 'yyyy-MM-dd') : ''}
-                  onChange={(e) => handleFilterChange('startDate', e.target.value ? new Date(e.target.value) : null)}
-                  InputLabelProps={{ shrink: true }}
+                  value={searchParams.startDate || ''}
+                  onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                  InputLabelProps={{ 
+                    shrink: true,
+                    sx: { color: 'rgba(255,255,255,0.7)' }
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      color: 'white',
+                      '& fieldset': {
+                        borderColor: 'rgba(255,255,255,0.2)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255,255,255,0.4)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                    },
+                  }}
                 />
 
                 <TextField
                   fullWidth
                   label="Bitiş Tarihi"
                   type="date"
-                  value={searchParams.endDate ? format(searchParams.endDate, 'yyyy-MM-dd') : ''}
-                  onChange={(e) => handleFilterChange('endDate', e.target.value ? new Date(e.target.value) : null)}
-                  InputLabelProps={{ shrink: true }}
+                  value={searchParams.endDate || ''}
+                  onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                  InputLabelProps={{ 
+                    shrink: true,
+                    sx: { color: 'rgba(255,255,255,0.7)' }
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      color: 'white',
+                      '& fieldset': {
+                        borderColor: 'rgba(255,255,255,0.2)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255,255,255,0.4)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                    },
+                  }}
                 />
+
+                {/* Fiyat Aralığı */}
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom sx={{ color: 'white' }}>
+                    Fiyat Aralığı (₺)
+                  </Typography>
+                  <Slider
+                    value={[searchParams.minPrice, searchParams.maxPrice]}
+                    onChange={(e, newValue) => {
+                      setSearchParams(prev => ({
+                        ...prev,
+                        minPrice: newValue[0],
+                        maxPrice: newValue[1]
+                      }));
+                      const priceRange = `${newValue[0]} TL - ${newValue[1]} TL`;
+                      addSelectedFilter('price', priceRange);
+                    }}
+                    min={0}
+                    max={1000}
+                    step={10}
+                    valueLabelDisplay="auto"
+                    sx={{
+                      color: 'primary.main',
+                      '& .MuiSlider-valueLabel': {
+                        bgcolor: 'primary.main',
+                      },
+                    }}
+                  />
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                      {searchParams.minPrice} ₺
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                      {searchParams.maxPrice} ₺
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Yaş Aralığı */}
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom sx={{ color: 'white' }}>
+                    Yaş Aralığı
+                  </Typography>
+                  <Slider
+                    value={[searchParams.minAge, searchParams.maxAge]}
+                    onChange={(e, newValue) => {
+                      setSearchParams(prev => ({
+                        ...prev,
+                        minAge: newValue[0],
+                        maxAge: newValue[1]
+                      }));
+                      const ageRange = `${newValue[0]} - ${newValue[1]} yaş`;
+                      addSelectedFilter('age', ageRange);
+                    }}
+                    min={0}
+                    max={100}
+                    valueLabelDisplay="auto"
+                    sx={{
+                      color: 'primary.main',
+                      '& .MuiSlider-valueLabel': {
+                        bgcolor: 'primary.main',
+                      },
+                    }}
+                  />
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                      {searchParams.minAge} yaş
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                      {searchParams.maxAge} yaş
+                    </Typography>
+                  </Box>
+                </Box>
 
                 {/* Kategoriler */}
                 <FormControl fullWidth>
-                  <InputLabel>Kategoriler</InputLabel>
+                  <InputLabel sx={{ color: 'rgba(255,255,255,0.7)' }}>Kategoriler</InputLabel>
                   <Select
                     multiple
                     value={searchParams.categories}
@@ -343,10 +513,30 @@ const Events = () => {
                         onMouseLeave: () => document.activeElement.blur() 
                       } 
                     }}
+                    sx={{
+                      color: 'white',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(255,255,255,0.2)',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(255,255,255,0.4)',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                      },
+                    }}
                     renderValue={(selected) => (
                       <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
                         {selected.map((value) => (
-                          <Chip key={value} label={value} size="small" />
+                          <Chip 
+                            key={value} 
+                            label={value} 
+                            size="small"
+                            sx={{
+                              bgcolor: 'primary.main',
+                              color: 'white',
+                            }}
+                          />
                         ))}
                       </Stack>
                     )}
@@ -359,65 +549,21 @@ const Events = () => {
                   </Select>
                 </FormControl>
 
-                {/* Lokasyon */}
-                <FormControl fullWidth>
-                  <InputLabel>Şehir</InputLabel>
-                  <Select
-                    value={searchParams.location}
-                    onChange={(e) => handleFilterChange('location', e.target.value)}
-                  >
-                    <MenuItem value="">Tümü</MenuItem>
-                    {locations.map((location) => (
-                      <MenuItem key={location} value={location}>
-                        {location}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                {/* Fiyat Aralığı */}
-                <Box>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Fiyat Aralığı (₺)
-                  </Typography>
-                  <Slider
-                    value={[searchParams.minPrice, searchParams.maxPrice]}
-                    onChange={(e, newValue) => {
-                      handleFilterChange('minPrice', newValue[0]);
-                      handleFilterChange('maxPrice', newValue[1]);
-                    }}
-                    min={0}
-                    max={1000}
-                    valueLabelDisplay="auto"
-                  />
-                </Box>
-
-                {/* Yaş Aralığı */}
-                <Box>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Yaş Aralığı
-                  </Typography>
-                  <Slider
-                    value={[searchParams.minAge, searchParams.maxAge]}
-                    onChange={(e, newValue) => {
-                      handleFilterChange('minAge', newValue[0]);
-                      handleFilterChange('maxAge', newValue[1]);
-                    }}
-                    min={0}
-                    max={100}
-                    valueLabelDisplay="auto"
-                  />
-                </Box>
-
                 {/* Ücret ve Yaş Sınırı Switchleri */}
                 <FormControlLabel
                   control={
                     <Switch
                       checked={searchParams.isPaid}
                       onChange={(e) => handleFilterChange('isPaid', e.target.checked)}
+                      sx={{
+                        '& .MuiSwitch-switchBase.Mui-checked': {
+                          color: 'primary.main',
+                        },
+                      }}
                     />
                   }
                   label="Sadece Ücretli Etkinlikler"
+                  sx={{ color: 'white' }}
                 />
 
                 <FormControlLabel
@@ -425,17 +571,35 @@ const Events = () => {
                     <Switch
                       checked={searchParams.hasAgeLimit}
                       onChange={(e) => handleFilterChange('hasAgeLimit', e.target.checked)}
+                      sx={{
+                        '& .MuiSwitch-switchBase.Mui-checked': {
+                          color: 'primary.main',
+                        },
+                      }}
                     />
                   }
                   label="Sadece Yaş Sınırlı Etkinlikler"
+                  sx={{ color: 'white' }}
                 />
 
                 {/* Sıralama */}
                 <FormControl fullWidth>
-                  <InputLabel>Sıralama Kriteri</InputLabel>
+                  <InputLabel sx={{ color: 'rgba(255,255,255,0.7)' }}>Sıralama Kriteri</InputLabel>
                   <Select
                     value={searchParams.sortBy}
                     onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+                    sx={{
+                      color: 'white',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(255,255,255,0.2)',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(255,255,255,0.4)',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                      },
+                    }}
                   >
                     {sortOptions.map(option => (
                       <MenuItem key={option.value} value={option.value}>
@@ -446,10 +610,22 @@ const Events = () => {
                 </FormControl>
 
                 <FormControl fullWidth>
-                  <InputLabel>Sıralama Yönü</InputLabel>
+                  <InputLabel sx={{ color: 'rgba(255,255,255,0.7)' }}>Sıralama Yönü</InputLabel>
                   <Select
                     value={searchParams.sortOrder}
                     onChange={(e) => handleFilterChange('sortOrder', e.target.value)}
+                    sx={{
+                      color: 'white',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(255,255,255,0.2)',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(255,255,255,0.4)',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'primary.main',
+                      },
+                    }}
                   >
                     <MenuItem value="ASC">Artan</MenuItem>
                     <MenuItem value="DESC">Azalan</MenuItem>
@@ -463,38 +639,47 @@ const Events = () => {
           <Grid item xs={12} md={9}>
             {/* Filtre etiketleri */}
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2, alignItems: 'center' }}>
-              {selectedFilters.length > 0 && (
-                <Button
-                  variant="outlined"
-                  onClick={clearFilters}
-                  startIcon={<ClearAll />}
-                  sx={{ mr: 2 }}
-                >
-                  Filtreleri Temizle
-                </Button>
-              )}
-              
-              {selectedFilters.map((filter, index) => (
-                <Chip
-                  key={index}
-                  label={`${filter.type === 'categories' ? 'Kategoriler' :
-                          filter.type === 'location' ? 'Konum' :
-                          filter.type === 'search' ? 'Arama' :
-                          filter.type === 'price' ? 'Fiyat' :
-                          filter.type === 'age' ? 'Yaş' :
-                          filter.type === 'paid' ? 'Ücret' :
-                          filter.type === 'ageLimit' ? 'Yaş Sınırı' :
-                          filter.type === 'date' ? 'Tarih' : ''}: ${filter.value}`}
-                  onDelete={() => handleFilterRemove(filter.type)}
-                  sx={{ backgroundColor: '#f5f5f5' }}
-                />
-              ))}
+              {selectedFilters.map((filter, index) => {
+                let displayValue = filter.value;
+                if (filter.type === 'price') {
+                  displayValue = `Fiyat: ${filter.value}`;
+                } else if (filter.type === 'age') {
+                  displayValue = `Yaş: ${filter.value}`;
+                } else if (filter.type === 'categories') {
+                  displayValue = `Kategoriler: ${filter.value}`;
+                } else if (filter.type === 'search') {
+                  displayValue = `Arama: ${filter.value}`;
+                } else if (filter.type === 'date') {
+                  displayValue = `Tarih: ${filter.value}`;
+                }
+
+                return (
+                  <Chip
+                    key={index}
+                    label={displayValue}
+                    onDelete={() => handleFilterRemove(filter.type)}
+                    sx={{
+                      bgcolor: 'primary.main',
+                      color: 'white',
+                      '&:hover': {
+                        bgcolor: 'primary.dark',
+                      },
+                      '& .MuiChip-deleteIcon': {
+                        color: 'white',
+                        '&:hover': {
+                          color: 'rgba(255, 255, 255, 0.7)',
+                        },
+                      },
+                    }}
+                  />
+                );
+              })}
             </Box>
 
             {/* Etkinlik Listesi */}
             {loading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-                <CircularProgress />
+                <CircularProgress sx={{ color: 'white' }} />
               </Box>
             ) : error ? (
               <Alert severity="error" sx={{ mt: 2 }}>
@@ -509,7 +694,159 @@ const Events = () => {
                 <Grid container spacing={3}>
                   {events.map((event) => (
                     <Grid item xs={12} sm={6} md={4} key={event.id}>
-                      <EventCard event={event} />
+                      <Paper
+                        sx={{
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          borderRadius: '16px',
+                          overflow: 'hidden',
+                          transition: 'all 0.3s ease',
+                          bgcolor: 'rgba(255, 255, 255, 0.05)',
+                          backdropFilter: 'blur(10px)',
+                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          '&:hover': {
+                            transform: 'translateY(-8px)',
+                            boxShadow: '0 12px 20px rgba(0,0,0,0.2)',
+                            bgcolor: 'rgba(255, 255, 255, 0.1)',
+                          },
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            position: 'relative',
+                            paddingTop: '60%',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <img
+                            src={event.imageUrl || 'https://via.placeholder.com/300x200'}
+                            alt={event.title}
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                            }}
+                          />
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              p: 2,
+                              background: 'linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%)',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'flex-start',
+                            }}
+                          >
+                            <Chip
+                              label={event.category}
+                              size="small"
+                              sx={{
+                                bgcolor: 'primary.main',
+                                color: 'white',
+                              }}
+                            />
+                            {event.isPaid ? (
+                              <Chip
+                                label={`${event.price} ₺`}
+                                size="small"
+                                sx={{
+                                  bgcolor: 'error.main',
+                                  color: 'white',
+                                }}
+                              />
+                            ) : (
+                              <Chip
+                                label="Ücretsiz"
+                                size="small"
+                                sx={{
+                                  bgcolor: 'success.main',
+                                  color: 'white',
+                                }}
+                              />
+                            )}
+                          </Box>
+                        </Box>
+                        <Box sx={{ p: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                          <Typography 
+                            variant="h6" 
+                            component="h2" 
+                            gutterBottom 
+                            noWrap
+                            sx={{ 
+                              color: 'white',
+                              fontSize: '1.1rem',
+                              fontWeight: 600
+                            }}
+                          >
+                            {event.title}
+                          </Typography>
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              color: 'rgba(255,255,255,0.7)',
+                              mb: 2,
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              height: '40px'
+                            }}
+                          >
+                            {event.description}
+                          </Typography>
+                          <Stack spacing={1.5} sx={{ mt: 'auto' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <LocationOn fontSize="small" sx={{ color: 'primary.main' }} />
+                              <Typography variant="body2" sx={{ color: 'white' }}>
+                                {event.location}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <CalendarToday fontSize="small" sx={{ color: 'primary.main' }} />
+                              <Typography variant="body2" sx={{ color: 'white' }}>
+                                {format(new Date(event.date), 'dd MMMM yyyy')} - {event.eventTime}
+                              </Typography>
+                            </Box>
+                            {event.hasAgeLimit && (
+                              <Chip
+                                size="small"
+                                label={`${event.ageLimit}+ Yaş`}
+                                sx={{
+                                  alignSelf: 'flex-start',
+                                  bgcolor: 'warning.main',
+                                  color: 'white',
+                                }}
+                              />
+                            )}
+                          </Stack>
+                        </Box>
+                        <Button
+                          variant="contained"
+                          fullWidth
+                          sx={{
+                            py: 1.5,
+                            borderRadius: 0,
+                            textTransform: 'none',
+                            fontSize: '1rem',
+                            fontWeight: 500,
+                            background: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)',
+                            '&:hover': {
+                              background: 'linear-gradient(45deg, #1565c0 30%, #1976d2 90%)',
+                            },
+                          }}
+                          onClick={() => navigate(`/events/${event.id}`)}
+                        >
+                          Detayları Gör
+                        </Button>
+                      </Paper>
                     </Grid>
                   ))}
                 </Grid>
@@ -522,12 +859,15 @@ const Events = () => {
                     color="primary"
                     size="large"
                     sx={{
-                        '& .MuiPaginationItem-root': {
-                            color: 'white',
-                            '&.Mui-selected': {
-                                bgcolor: 'primary.main',
-                            }
-                        }
+                      '& .MuiPaginationItem-root': {
+                        color: 'white',
+                        '&.Mui-selected': {
+                          bgcolor: 'primary.main',
+                        },
+                        '&:hover': {
+                          bgcolor: 'rgba(255, 255, 255, 0.1)',
+                        },
+                      }
                     }}
                   />
                 </Box>
