@@ -15,7 +15,7 @@ import Profile from './pages/Profile';
 import UserProfile from './pages/UserProfile';
 import Settings from './pages/Settings';
 import Events from './pages/Events';
-import EventForm from './components/EventForm';
+import EventForm from './pages/EventForm';
 import EventDetail from './pages/EventDetail';
 import Favorites from './pages/Favorites';
 import UpdateEvent from './pages/UpdateEvent';

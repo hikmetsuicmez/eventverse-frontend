@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Typography, Grid, Paper, Box, Card, CardContent, Button, IconButton, Divider, CircularProgress, Fab, Avatar, Tooltip, Chip } from '@mui/material';
-import { EventAvailable, People, LocationOn, CalendarMonth, AccessTime, Category, Add, FilterList, Warning, AttachMoney } from '@mui/icons-material';
+import { EventAvailable, People, LocationOn, CalendarMonth, AccessTime, Category, Add, FilterList, Warning, AttachMoney, CalendarToday } from '@mui/icons-material';
 import EventService from '../services/event.service';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -151,7 +151,7 @@ const EventCard = ({ event }) => {
         '&:hover': {
           transform: 'translateY(-4px)',
           boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-          bgcolor: 'rgba(255, 255, 255, 0.1)',
+          bgcolor: 'rgba(255, 255, 255, 0.1)'
         }
       }}
     >
@@ -208,13 +208,13 @@ const EventCard = ({ event }) => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
           <Box sx={{ flex: 1 }}>
             <Typography variant="h6" sx={{ color: 'white', fontWeight: 600, mb: 1 }}>
-              {event?.title}
+              {event.title}
             </Typography>
             
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               <Chip
                 icon={<Category sx={{ color: 'inherit' }} />}
-                label={event?.category}
+                label={event.category}
                 size="small"
                 sx={{
                   bgcolor: 'rgba(63, 81, 181, 0.2)',
@@ -227,24 +227,11 @@ const EventCard = ({ event }) => {
               />
               <Chip
                 icon={<LocationOn sx={{ color: 'inherit' }} />}
-                label={event?.location}
+                label={event.location}
                 size="small"
                 sx={{
                   bgcolor: 'rgba(76, 175, 80, 0.2)',
                   color: '#a5d6a7',
-                  borderRadius: '8px',
-                  '& .MuiChip-icon': {
-                    color: 'inherit'
-                  }
-                }}
-              />
-              <Chip
-                icon={<AttachMoney sx={{ color: 'inherit' }} />}
-                label={event?.isPaid ? `${event.price} ₺` : 'Ücretsiz'}
-                size="small"
-                sx={{
-                  bgcolor: event?.isPaid ? 'rgba(244, 67, 54, 0.2)' : 'rgba(76, 175, 80, 0.2)',
-                  color: event?.isPaid ? '#ef9a9a' : '#a5d6a7',
                   borderRadius: '8px',
                   '& .MuiChip-icon': {
                     color: 'inherit'
@@ -496,12 +483,36 @@ const Dashboard = () => {
           variant="h3"
           sx={{
             color: 'white',
-            mb: 6,
+            mb: 2,
             fontWeight: 700,
             textAlign: 'center'
           }}
         >
           Etkinlikler Dünyasına Hoş Geldiniz
+        </Typography>
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            color: 'rgba(255, 255, 255, 0.7)',
+            textAlign: 'center',
+            mb: 6,
+            maxWidth: '800px',
+            mx: 'auto',
+            position: 'relative',
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              bottom: -16,
+              left: '10%',
+              width: '80%',
+              height: '4px',
+              background: 'linear-gradient(90deg, #3f51b5 0%, #f50057 100%)',
+              borderRadius: '2px',
+            }
+          }}
+        >
+          Yeni deneyimler keşfedin, ilgi alanlarınıza uygun etkinliklere katılın ve unutulmaz anılar biriktirin. 
+          Size özel seçilmiş etkinliklerle dolu bir dünya sizi bekliyor.
         </Typography>
 
         {/* Ana İçerik Bölümü */}

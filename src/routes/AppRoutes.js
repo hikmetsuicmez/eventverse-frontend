@@ -7,7 +7,7 @@ import Register from '../pages/Register';
 import Favorites from '../pages/Favorites';
 import Dashboard from '../pages/Dashboard';
 import Profile from '../pages/Profile';
-import EventForm from '../components/EventForm';
+import EventForm from '../pages/EventForm';
 import EventDetail from '../pages/EventDetail';
 import Navbar from '../components/Navbar';
 import { ToastContainer } from 'react-toastify';

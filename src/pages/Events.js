@@ -52,7 +52,7 @@ const Events = () => {
     sortBy: 'date',
     sortOrder: 'ASC',
     page: 0,
-    size: 8
+    size: 9
   });
 
   const [selectedFilters, setSelectedFilters] = useState([]);
@@ -193,7 +193,7 @@ const Events = () => {
       sortBy: 'date',
       sortOrder: 'ASC',
       page: 0,
-      size: 8
+      size: 9
     });
     setSelectedFilters([]);
   };
@@ -250,7 +250,7 @@ const Events = () => {
         hasAgeLimit: searchParams.hasAgeLimit
     };
 
-    EventService.filterEvents(filterData, page, 8, searchParams.sortBy, searchParams.sortOrder)
+    EventService.filterEvents(filterData, page, 9, searchParams.sortBy, searchParams.sortOrder)
         .then(response => {
             setEvents(response.data.content);
             setTotalPages(response.data.totalPages);

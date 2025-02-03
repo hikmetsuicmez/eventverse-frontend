@@ -40,7 +40,9 @@ import {
     Reply,
     ChatBubbleOutline,
     CalendarMonth,
-    Edit
+    Edit,
+    Category,
+    Person
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
@@ -254,16 +256,20 @@ const EventDetail = () => {
         }
     };
 
-    const getParticipationStatusText = (status) => {
+    const getParticipantStatusText = (status) => {
         switch (status) {
             case 'PENDING':
-                return 'Onay Bekleniyor';
+                return 'Onay Bekliyor';
             case 'APPROVED':
                 return 'Onaylandı';
             case 'REJECTED':
                 return 'Reddedildi';
             case 'PAYMENT_PENDING':
                 return 'Ödeme Bekleniyor';
+            case 'PAYMENT_FAILED':
+                return 'Ödeme Başarısız';
+            case 'CANCELLED':
+                return 'İptal Edildi';
             case 'COMPLETED':
                 return 'Katılım Tamamlandı';
             default:
@@ -271,7 +277,7 @@ const EventDetail = () => {
         }
     };
 
-    const getParticipationStatusColor = (status) => {
+    const getParticipantStatusColor = (status) => {
         switch (status) {
             case 'PENDING':
                 return '#ffb74d';
@@ -281,6 +287,10 @@ const EventDetail = () => {
                 return '#e57373';
             case 'PAYMENT_PENDING':
                 return '#64b5f6';
+            case 'PAYMENT_FAILED':
+                return '#e57373';
+            case 'CANCELLED':
+                return '#9e9e9e';
             case 'COMPLETED':
                 return '#81c784';
             default:
@@ -310,16 +320,16 @@ const EventDetail = () => {
             if (participationStatus === 'PAYMENT_PENDING') {
                 return (
                     <Chip
-                        label={getParticipationStatusText(participationStatus)}
+                        label={getParticipantStatusText(participationStatus)}
                         onClick={() => setShowPaymentModal(true)}
                         sx={{
-                            bgcolor: `${getParticipationStatusColor(participationStatus)}20`,
-                            color: getParticipationStatusColor(participationStatus),
+                            bgcolor: `${getParticipantStatusColor(participationStatus)}20`,
+                            color: getParticipantStatusColor(participationStatus),
                             borderRadius: '16px',
                             px: 2,
                             cursor: 'pointer',
                             '&:hover': {
-                                bgcolor: `${getParticipationStatusColor(participationStatus)}30`,
+                                bgcolor: `${getParticipantStatusColor(participationStatus)}30`,
                             }
                         }}
                     />
@@ -328,10 +338,10 @@ const EventDetail = () => {
             
             return (
                 <Chip
-                    label={getParticipationStatusText(participationStatus)}
+                    label={getParticipantStatusText(participationStatus)}
                     sx={{
-                        bgcolor: `${getParticipationStatusColor(participationStatus)}20`,
-                        color: getParticipationStatusColor(participationStatus),
+                        bgcolor: `${getParticipantStatusColor(participationStatus)}20`,
+                        color: getParticipantStatusColor(participationStatus),
                         borderRadius: '16px',
                         px: 2
                     }}
@@ -502,9 +512,9 @@ const EventDetail = () => {
                                 startIcon={<Edit />}
                                 onClick={() => navigate(`/events/${id}/edit`)}
                                 sx={{ 
-                                    bgcolor: 'rgba(63, 81, 181, 0.8)',
+                                    bgcolor: 'ffffff',
                                     '&:hover': { 
-                                        bgcolor: 'rgba(63, 81, 181, 1)'
+                                        bgcolor: 'rgb(226, 226, 230)'
                                     }
                                 }}
                             >
@@ -592,42 +602,37 @@ const EventDetail = () => {
                                     </Box>
                                 </Box>
 
-                                <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                        <Category sx={{ mr: 1, color: 'primary.main' }} />
+                                        <Typography variant="body2" color="text.secondary">
+                                            {event.category}
+                                        </Typography>
+                                    </Box>
+
+                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                        <AttachMoney sx={{ mr: 1, color: event.isPaid ? 'error.main' : 'success.main' }} />
+                                        <Typography variant="body2" color={event.isPaid ? 'error.main' : 'success.main'}>
+                                            {event.price === 0 ? 'Ücretsiz' : `${event.price} ₺`}
+                                        </Typography>
+                                    </Box>
                                     <Chip
-                                        icon={<CalendarMonth sx={{ color: '#90caf9' }} />}
-                                        label={`${formatDate(event.date)} ${event.eventTime || ''}`}
-                                        sx={{ 
-                                            bgcolor: 'rgba(144, 202, 249, 0.2)',
-                                            color: '#90caf9',
-                                            border: '1px solid rgba(144, 202, 249, 0.3)'
-                                        }}
-                                    />
-                                    <Chip
-                                        icon={<LocationOn sx={{ color: '#90caf9' }} />}
+                                        icon={<LocationOn sx={{ color: 'inherit' }} />}
                                         label={event.location}
-                                        sx={{ 
-                                            bgcolor: 'rgba(144, 202, 249, 0.2)',
-                                            color: '#90caf9',
-                                            border: '1px solid rgba(144, 202, 249, 0.3)'
+                                        sx={{
+                                            bgcolor: 'rgba(76, 175, 80, 0.2)',
+                                            color: '#a5d6a7',
+                                            '& .MuiChip-icon': { color: 'inherit' }
                                         }}
                                     />
-                                    <Chip
-                                        icon={<Group sx={{ color: '#90caf9' }} />}
-                                        label={`${event.maxParticipants} Katılımcı`}
-                                        sx={{ 
-                                            bgcolor: 'rgba(144, 202, 249, 0.2)',
-                                            color: '#90caf9',
-                                            border: '1px solid rgba(144, 202, 249, 0.3)'
-                                        }}
-                                    />
-                                    {event.hasAgeLimit && event.ageLimit > 0 && (
+                                    {event.hasAgeLimit && (
                                         <Chip
-                                            icon={<Warning sx={{ color: '#ffb74d' }} />}
-                                            label={`+${event.ageLimit} Yaş`}
-                                            sx={{ 
-                                                bgcolor: 'rgba(255, 183, 77, 0.2)',
-                                                color: '#ffb74d',
-                                                border: '1px solid rgba(255, 183, 77, 0.3)'
+                                            icon={<Person sx={{ color: 'inherit' }} />}
+                                            label={`${event.ageLimit}+ Yaş`}
+                                            sx={{
+                                                bgcolor: 'rgba(255, 152, 0, 0.2)',
+                                                color: '#ffcc80',
+                                                '& .MuiChip-icon': { color: 'inherit' }
                                             }}
                                         />
                                     )}
@@ -837,86 +842,68 @@ const EventDetail = () => {
                                     <Typography variant="h6" sx={{ color: '#90caf9', mb: 2, fontWeight: 500 }}>
                                         Katılımcılar
                                     </Typography>
-                                    {event.participants && event.participants.length > 0 ? (
-                                        <List sx={{ width: '100%', bgcolor: 'transparent' }}>
+                                    {event.participants?.length > 0 ? (
+                                        <List>
                                             {event.participants.map((participant) => (
                                                 <ListItem
                                                     key={participant.id}
                                                     sx={{
-                                                        bgcolor: 'rgba(255, 255, 255, 0.1)',
-                                                        borderRadius: '8px',
-                                                        mb: 1,
-                                                        '&:last-child': { mb: 0 }
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        py: 1
                                                     }}
-                                                    secondaryAction={
-                                                        participant.status === 'PENDING' && (
-                                                            <Box sx={{ display: 'flex', gap: 1 }}>
-                                                                <IconButton
-                                                                    edge="end"
-                                                                    disabled={participantActionLoading}
-                                                                    onClick={() => handleParticipantAction(participant.id, 'APPROVED')}
-                                                                    sx={{
-                                                                        color: '#4caf50',
-                                                                        '&:hover': { bgcolor: 'rgba(76, 175, 80, 0.2)' }
-                                                                    }}
-                                                                >
-                                                                    <Check />
-                                                                </IconButton>
-                                                                <IconButton
-                                                                    edge="end"
-                                                                    disabled={participantActionLoading}
-                                                                    onClick={() => handleParticipantAction(participant.id, 'REJECTED')}
-                                                                    sx={{
-                                                                        color: '#f44336',
-                                                                        '&:hover': { bgcolor: 'rgba(244, 67, 54, 0.2)' }
-                                                                    }}
-                                                                >
-                                                                    <Close />
-                                                                </IconButton>
-                                                            </Box>
-                                                        )
-                                                    }
                                                 >
-                                                    <ListItemAvatar>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
                                                         <Avatar
-                                                            src={participant.user?.profilePicture}
-                                                            alt={`${participant.user?.firstName} ${participant.user?.lastName}`}
-                                                            sx={{ border: '2px solid #90caf9' }}
+                                                            src={participant.user.profilePicture}
+                                                            alt={`${participant.user.firstName} ${participant.user.lastName}`}
+                                                            sx={{
+                                                                width: 40,
+                                                                height: 40,
+                                                                border: '2px solid',
+                                                                borderColor: getParticipantStatusColor(participant.status)
+                                                            }}
                                                         />
-                                                    </ListItemAvatar>
-                                                    <ListItemText
-                                                        primary={
-                                                            <Typography sx={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-                                                                {`${participant.user?.firstName} ${participant.user?.lastName}`}
-                                                            </Typography>
-                                                        }
-                                                        secondary={
-                                                            <Chip
-                                                                label={
-                                                                    participant.status === 'PENDING'
-                                                                        ? 'Onay Bekliyor'
-                                                                        : participant.status === 'APPROVED'
-                                                                            ? 'Onaylandı'
-                                                                            : 'Reddedildi'
-                                                                }
-                                                                size="small"
-                                                                sx={{
-                                                                    bgcolor:
-                                                                        participant.status === 'PENDING'
-                                                                            ? 'rgba(255, 183, 77, 0.2)'
-                                                                            : participant.status === 'APPROVED'
-                                                                                ? 'rgba(76, 175, 80, 0.2)'
-                                                                                : 'rgba(244, 67, 54, 0.2)',
-                                                                    color:
-                                                                        participant.status === 'PENDING'
-                                                                            ? '#ffb74d'
-                                                                            : participant.status === 'APPROVED'
-                                                                                ? '#81c784'
-                                                                                : '#e57373'
-                                                                }}
-                                                            />
-                                                        }
-                                                    />
+                                                        <ListItemText
+                                                            primary={
+                                                                <Typography sx={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+                                                                    {`${participant.user.firstName} ${participant.user.lastName}`}
+                                                                </Typography>
+                                                            }
+                                                            secondary={
+                                                                <Chip
+                                                                    label={getParticipantStatusText(participant.status)}
+                                                                    size="small"
+                                                                    sx={{
+                                                                        bgcolor: `${getParticipantStatusColor(participant.status)}20`,
+                                                                        color: getParticipantStatusColor(participant.status),
+                                                                        borderRadius: '16px',
+                                                                        px: 1,
+                                                                        mt: 0.5
+                                                                    }}
+                                                                />
+                                                            }
+                                                        />
+                                                    </Box>
+                                                    {event.organizer.id === user?.id && participant.status === 'PENDING' && (
+                                                        <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                                                            <IconButton
+                                                                onClick={() => handleParticipantAction(participant.id, 'APPROVED')}
+                                                                disabled={participantActionLoading}
+                                                                sx={{ color: '#81c784' }}
+                                                            >
+                                                                <Check />
+                                                            </IconButton>
+                                                            <IconButton
+                                                                onClick={() => handleParticipantAction(participant.id, 'REJECTED')}
+                                                                disabled={participantActionLoading}
+                                                                sx={{ color: '#e57373' }}
+                                                            >
+                                                                <Close />
+                                                            </IconButton>
+                                                        </Box>
+                                                    )}
                                                 </ListItem>
                                             ))}
                                         </List>

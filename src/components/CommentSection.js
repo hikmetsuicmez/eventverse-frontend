@@ -78,7 +78,7 @@ const CommentSection = ({ eventId }) => {
     return (
         <Box sx={{ mt: 4 }}>
             <Paper elevation={0} sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 2 }}>
-                <Typography variant="h6" gutterBottom sx={{ color: '#1a237e', fontWeight: 600 }}>
+                <Typography variant="h6" gutterBottom sx={{ color: 'ffffff', fontWeight: 600 }}>
                     Yorumlar
                 </Typography>
                 

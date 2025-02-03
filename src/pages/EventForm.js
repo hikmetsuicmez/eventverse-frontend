@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Box,
     Container,
@@ -7,108 +7,26 @@ import {
     TextField,
     Button,
     Grid,
+    Paper,
     FormControlLabel,
     Switch,
-    Alert,
-    CircularProgress,
-    Paper,
     MenuItem,
-    InputAdornment
+    InputAdornment,
+    IconButton
 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { format } from 'date-fns';
 import EventService from '../services/event.service';
-import { useAuth } from '../context/AuthContext';
 import MapComponent from '../components/MapComponent';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import { Close } from '@mui/icons-material';
 
-const UpdateEvent = () => {
-    const { id } = useParams();
+const EventForm = () => {
     const navigate = useNavigate();
-    const { user } = useAuth();
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const [selectedLocation, setSelectedLocation] = useState(null);
-    const [initialValues, setInitialValues] = useState({
-        title: '',
-        description: '',
-        date: '',
-        eventTime: '',
-        location: '',
-        maxParticipants: 1,
-        category: 'Eğitim',
-        paid: false,
-        price: 0,
-        hasAgeLimit: false,
-        ageLimit: 0,
-        requiresApproval: false
-    });
     const [selectedImage, setSelectedImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
-    const [uploadLoading, setUploadLoading] = useState(false);
-
-    useEffect(() => {
-        const fetchEvent = async () => {
-            try {
-                const response = await EventService.getEventById(id);
-                const event = response.data;
-
-                // Check if current user is the organizer
-                if (event.organizer.id !== user?.id) {
-                    navigate('/dashboard');
-                    toast.error('Bu etkinliği düzenleme yetkiniz yok.');
-                    return;
-                }
-
-                setInitialValues({
-                    title: event.title,
-                    description: event.description,
-                    date: format(new Date(event.date), 'yyyy-MM-dd'),
-                    eventTime: event.eventTime || '',
-                    location: event.location,
-                    maxParticipants: event.maxParticipants,
-                    category: event.category,
-                    paid: event.paid,
-                    price: event.price || 0,
-                    hasAgeLimit: event.hasAgeLimit,
-                    ageLimit: event.ageLimit || 0,
-                    requiresApproval: event.requiresApproval
-                });
-
-                setSelectedLocation({
-                    lat: parseFloat(event.latitude),
-                    lng: parseFloat(event.longitude)
-                });
-
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching event:', error);
-                setError('Etkinlik bilgileri yüklenirken bir hata oluştu.');
-                setLoading(false);
-            }
-        };
-
-        fetchEvent();
-    }, [id, user?.id, navigate]);
-
-    const validationSchema = Yup.object({
-        title: Yup.string().required('Başlık zorunludur'),
-        description: Yup.string().required('Açıklama zorunludur'),
-        date: Yup.date()
-            .min(new Date(), 'Geçmiş bir tarih seçemezsiniz')
-            .required('Tarih zorunludur'),
-        eventTime: Yup.string().required('Saat zorunludur'),
-        location: Yup.string().required('Konum zorunludur'),
-        maxParticipants: Yup.number()
-            .min(1, 'En az 1 katılımcı olmalıdır')
-            .required('Katılımcı sayısı zorunludur'),
-        category: Yup.string().required('Kategori zorunludur'),
-        price: Yup.number().min(0, 'Fiyat 0\'dan küçük olamaz'),
-        ageLimit: Yup.number().min(0, 'Yaş sınırı 0\'dan küçük olamaz')
-    });
 
     const categories = [
         'Eğitim',
@@ -121,20 +39,53 @@ const UpdateEvent = () => {
         'Sağlık'
     ];
 
+    const initialValues = {
+        title: '',
+        description: '',
+        date: '',
+        eventTime: '',
+        location: '',
+        address: '',
+        maxParticipants: 1,
+        category: 'Eğitim',
+        paid: false,
+        price: 0,
+        hasAgeLimit: false,
+        ageLimit: 0,
+        requiresApproval: false
+    };
+
+    const validationSchema = Yup.object({
+        title: Yup.string().required('Başlık zorunludur'),
+        description: Yup.string().required('Açıklama zorunludur'),
+        date: Yup.date()
+            .min(new Date(), 'Geçmiş bir tarih seçemezsiniz')
+            .required('Tarih zorunludur'),
+        eventTime: Yup.string().required('Saat zorunludur'),
+        location: Yup.string().required('Konum zorunludur'),
+        address: Yup.string().required('Adres detayı zorunludur'),
+        maxParticipants: Yup.number()
+            .min(1, 'En az 1 katılımcı olmalıdır')
+            .required('Katılımcı sayısı zorunludur'),
+        category: Yup.string().required('Kategori zorunludur'),
+        price: Yup.number().min(0, 'Fiyat 0\'dan küçük olamaz'),
+        ageLimit: Yup.number().min(0, 'Yaş sınırı 0\'dan küçük olamaz')
+    });
+
     const handlePositionSelect = (pos) => {
         const [lat, lng] = pos;
         setSelectedLocation({ lat, lng });
     };
 
-    const handleImageChange = (event) => {
+    const handleImageSelect = (event) => {
         const file = event.target.files[0];
         if (file) {
-            if (file.size > 5 * 1024 * 1024) {
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
                 toast.error('Dosya boyutu 5MB\'dan küçük olmalıdır');
                 return;
             }
-            if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-                toast.error('Sadece JPEG, JPG ve PNG formatları desteklenmektedir');
+            if (!file.type.startsWith('image/')) {
+                toast.error('Lütfen geçerli bir resim dosyası seçin');
                 return;
             }
             setSelectedImage(file);
@@ -143,42 +94,18 @@ const UpdateEvent = () => {
     };
 
     const formik = useFormik({
-        initialValues: initialValues || {
-            title: '',
-            description: '',
-            date: '',
-            eventTime: '',
-            location: '',
-            maxParticipants: 1,
-            category: 'Eğitim',
-            paid: false,
-            price: 0,
-            hasAgeLimit: false,
-            ageLimit: 0,
-            requiresApproval: false
-        },
+        initialValues,
         validationSchema,
-        enableReinitialize: true,
         onSubmit: async (values) => {
             try {
                 setLoading(true);
-                let imageUrl = initialValues?.imageUrl;
-
-                if (selectedImage) {
-                    const formData = new FormData();
-                    formData.append('image', selectedImage);
-                    const uploadResponse = await EventService.uploadEventImage(id, formData);
-                    if (uploadResponse.data) {
-                        imageUrl = uploadResponse.data;
-                    }
-                }
-
                 const eventData = {
                     title: values.title,
                     description: values.description,
                     date: values.date,
                     eventTime: values.eventTime,
                     location: values.location,
+                    address: values.address,
                     maxParticipants: values.maxParticipants,
                     category: values.category,
                     paid: values.paid,
@@ -186,56 +113,40 @@ const UpdateEvent = () => {
                     hasAgeLimit: values.hasAgeLimit,
                     ageLimit: values.ageLimit,
                     requiresApproval: values.requiresApproval,
-                    imageUrl,
                     coordinates: {
-                        latitude: selectedLocation.lat,
-                        longitude: selectedLocation.lng,
+                        latitude: selectedLocation?.lat,
+                        longitude: selectedLocation?.lng,
                         city: values.location.split(',')[0].trim(),
                         country: 'Türkiye'
                     }
                 };
 
-                await EventService.updateEvent(id, eventData);
-                toast.success('Etkinlik başarıyla güncellendi');
-                navigate(`/events/${id}`);
+                const response = await EventService.createEvent(eventData);
+                
+                if (selectedImage) {
+                    const formData = new FormData();
+                    formData.append('image', selectedImage);
+                    await EventService.uploadEventImage(response.data.id, formData);
+                }
+
+                toast.success('Etkinlik başarıyla oluşturuldu');
+                navigate('/dashboard');
             } catch (error) {
-                console.error('Error updating event:', error);
-                toast.error(error.response?.data?.message || 'Etkinlik güncellenirken bir hata oluştu');
+                console.error('Error creating event:', error);
+                toast.error(error.response?.data?.message || 'Etkinlik oluşturulurken bir hata oluştu');
             } finally {
                 setLoading(false);
             }
         }
     });
 
-    if (loading) {
-        return (
-            <Box
-                sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    minHeight: 'calc(100vh - 64px)',
-                    pt: '64px'
-                }}
-            >
-                <CircularProgress />
-            </Box>
-        );
-    }
-
     return (
         <Box sx={{ pt: '84px', pb: 8, bgcolor: '#0A1929', minHeight: '100vh' }}>
             <Container maxWidth="lg">
                 <Paper elevation={0} sx={{ p: 4, borderRadius: '16px' }}>
                     <Typography variant="h4" sx={{ mb: 4, color: '#ffffff', fontWeight: 600 }}>
-                        Etkinliği Düzenle
+                        Yeni Etkinlik Oluştur
                     </Typography>
-
-                    {error && (
-                        <Alert severity="error" sx={{ mb: 2 }}>
-                            {error}
-                        </Alert>
-                    )}
 
                     <form onSubmit={formik.handleSubmit}>
                         <Grid container spacing={3}>
@@ -306,11 +217,28 @@ const UpdateEvent = () => {
                                     fullWidth
                                     id="location"
                                     name="location"
-                                    label="Konum"
+                                    label="Konum (Şehir, İlçe)"
                                     value={formik.values.location}
                                     onChange={formik.handleChange}
                                     error={formik.touched.location && Boolean(formik.errors.location)}
                                     helperText={formik.touched.location && formik.errors.location}
+                                    placeholder="Örnek: İstanbul, Kadıköy"
+                                />
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <TextField
+                                    fullWidth
+                                    id="address"
+                                    name="address"
+                                    label="Adres Detayı"
+                                    multiline
+                                    rows={2}
+                                    value={formik.values.address}
+                                    onChange={formik.handleChange}
+                                    error={formik.touched.address && Boolean(formik.errors.address)}
+                                    helperText={formik.touched.address && formik.errors.address}
+                                    placeholder="Sokak, mahalle ve bina numarası gibi detaylı adres bilgilerini giriniz"
                                 />
                             </Grid>
 
@@ -431,8 +359,7 @@ const UpdateEvent = () => {
                                 </Typography>
                             </Grid>
 
-                            <Box sx={{ mb: 3 }}>
-                                <Typography variant="subtitle1" sx={{ mb: 1 }}>Etkinlik Görseli</Typography>
+                            <Grid item xs={12}>
                                 <Box
                                     sx={{
                                         border: '2px dashed #90caf9',
@@ -440,68 +367,50 @@ const UpdateEvent = () => {
                                         p: 3,
                                         textAlign: 'center',
                                         cursor: 'pointer',
+                                        mb: 2,
                                         '&:hover': {
                                             bgcolor: 'rgba(144, 202, 249, 0.08)'
                                         }
                                     }}
-                                    onClick={() => document.getElementById('event-image-input').click()}
+                                    onClick={() => document.getElementById('event-image').click()}
                                 >
-                                    {imagePreview || initialValues?.imageUrl ? (
-                                        <Box sx={{ position: 'relative' }}>
-                                            <img
-                                                src={imagePreview || initialValues?.imageUrl}
-                                                alt="Etkinlik görseli"
-                                                style={{
-                                                    maxWidth: '100%',
-                                                    maxHeight: '200px',
-                                                    borderRadius: '8px'
-                                                }}
-                                            />
-                                            <Button
-                                                variant="contained"
-                                                color="primary"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setSelectedImage(null);
-                                                    setImagePreview(null);
-                                                }}
-                                                sx={{
-                                                    position: 'absolute',
-                                                    top: 8,
-                                                    right: 8,
-                                                    minWidth: 'auto',
-                                                    p: '6px'
-                                                }}
-                                            >
-                                                <Close />
-                                            </Button>
-                                        </Box>
-                                    ) : (
-                                        <>
-                                            <CloudUploadIcon sx={{ fontSize: 48, color: '#90caf9', mb: 1 }} />
-                                            <Typography>
-                                                Görsel yüklemek için tıklayın veya sürükleyin
-                                            </Typography>
-                                            <Typography variant="body2" color="textSecondary">
-                                                PNG, JPG veya JPEG (max. 5MB)
-                                            </Typography>
-                                        </>
-                                    )}
+                                    <input
+                                        type="file"
+                                        id="event-image"
+                                        accept="image/*"
+                                        style={{ display: 'none' }}
+                                        onChange={handleImageSelect}
+                                    />
+                                    <IconButton color="primary" component="span">
+                                        <CloudUploadIcon />
+                                    </IconButton>
+                                    <Typography variant="body1" sx={{ mt: 1 }}>
+                                        {imagePreview ? 'Resmi Değiştir' : 'Etkinlik Resmi Yükle'}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                                        PNG, JPG veya JPEG (max. 5MB)
+                                    </Typography>
                                 </Box>
-                                <input
-                                    type="file"
-                                    id="event-image-input"
-                                    accept="image/jpeg,image/jpg,image/png"
-                                    onChange={handleImageChange}
-                                    style={{ display: 'none' }}
-                                />
-                            </Box>
+                                {imagePreview && (
+                                    <Box
+                                        component="img"
+                                        src={imagePreview}
+                                        alt="Etkinlik önizleme"
+                                        sx={{
+                                            width: '100%',
+                                            maxHeight: 300,
+                                            objectFit: 'cover',
+                                            borderRadius: 1
+                                        }}
+                                    />
+                                )}
+                            </Grid>
 
                             <Grid item xs={12}>
                                 <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                                     <Button
                                         variant="outlined"
-                                        onClick={() => navigate(`/events/${id}`)}
+                                        onClick={() => navigate('/dashboard')}
                                         sx={{
                                             color: '#ffffff',
                                             borderColor: '#1a237e',
@@ -516,12 +425,13 @@ const UpdateEvent = () => {
                                     <Button
                                         type="submit"
                                         variant="contained"
+                                        disabled={loading}
                                         sx={{
-                                            bgcolor: '#ffffff',
-                                            '&:hover': { bgcolor: '#ffffff' }
+                                            bgcolor: 'ffffff',
+                                            '&:hover': { bgcolor: '#0d47a1' }
                                         }}
                                     >
-                                        Güncelle
+                                        {loading ? 'Oluşturuluyor...' : 'Oluştur'}
                                     </Button>
                                 </Box>
                             </Grid>
@@ -533,4 +443,4 @@ const UpdateEvent = () => {
     );
 };
 
-export default UpdateEvent; 
+export default EventForm; 
