@@ -63,7 +63,10 @@ const EventService = {
 
     createEvent: async (eventData) => {
         try {
-            const response = await api.post('/api/v1/events', eventData);
+            const response = await api.post('/api/v1/events', {
+                ...eventData,
+                requiresApproval: eventData.requiresApproval || false
+            });
             return response.data;
         } catch (error) {
             console.error('Create event error:', error);
@@ -211,7 +214,10 @@ const EventService = {
 
     updateEvent: async (eventId, eventData) => {
         try {
-            const response = await api.put(`/api/v1/events/${eventId}`, eventData);
+            const response = await api.put(`/api/v1/events/${eventId}`, {
+                ...eventData,
+                requiresApproval: eventData.requiresApproval || false
+            });
             return response.data;
         } catch (error) {
             console.error('Error updating event:', error);

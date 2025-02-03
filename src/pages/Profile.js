@@ -56,6 +56,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ReactCrop, { makeAspectCrop, centerCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
+import { toast } from 'react-hot-toast';
 
 const Profile = () => {
   const { user: authUser, updateUser } = useAuth();
@@ -175,15 +176,23 @@ const Profile = () => {
     }
   };
 
-  const handleImageUpload = async (event) => {
+  const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
         setError('Dosya boyutu 5MB\'dan küçük olmalıdır');
         return;
       }
+
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+      if (!allowedTypes.includes(file.type)) {
+        setError('Sadece JPEG, PNG ve JPG formatları desteklenmektedir');
+        return;
+      }
+
       setSelectedImage(file);
       setImageUploadDialog(true);
+      setError('');
     }
   };
 
@@ -192,9 +201,11 @@ const Profile = () => {
     
     setUploadLoading(true);
     setError('');
+    
     try {
       const formData = new FormData();
       formData.append('file', selectedImage);
+      
       const response = await UserService.updateProfilePicture(formData);
       
       if (response && response.data) {
@@ -212,11 +223,11 @@ const Profile = () => {
         
         setImageUploadDialog(false);
         setSelectedImage(null);
-        window.location.reload();
+        toast.success('Profil fotoğrafı başarıyla güncellendi');
       }
     } catch (error) {
       console.error('Fotoğraf yüklenemedi:', error);
-      setError('Fotoğraf yüklenirken bir hata oluştu');
+      setError(error.response?.data?.message || 'Fotoğraf yüklenirken bir hata oluştu');
     } finally {
       setUploadLoading(false);
     }
@@ -302,31 +313,23 @@ const Profile = () => {
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        bgcolor: '#0A1929',
-        pt: 8,
-        pb: 4
-      }}
-    >
+    <Box sx={{ 
+      pt: '84px', 
+      pb: 8, 
+      bgcolor: '#0A1929', 
+      minHeight: '100vh' 
+    }}>
       <Container maxWidth="lg">
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
         <Grid container spacing={3}>
           {/* Sol Taraf - Profil Bilgileri */}
           <Grid item xs={12} md={4}>
             <Paper
-              elevation={0}
+              elevation={3}
               sx={{
                 p: 3,
                 borderRadius: '16px',
-                bgcolor: '#ffffff',
-                backdropFilter: 'blur(20px)',
-                position: 'relative'
+                bgcolor: '#132f4c',
+                backdropFilter: 'blur(20px)'
               }}
             >
               <Box sx={{ position: 'relative', mb: 3 }}>
@@ -336,8 +339,8 @@ const Profile = () => {
                   badgeContent={
                     <IconButton
                       sx={{
-                        bgcolor: '#1a237e',
-                        '&:hover': { bgcolor: '#0d47a1' },
+                        bgcolor: '#1976d2',
+                        '&:hover': { bgcolor: '#1565c0' },
                         width: 32,
                         height: 32
                       }}
@@ -360,7 +363,7 @@ const Profile = () => {
                       width: 120,
                       height: 120,
                       mx: 'auto',
-                      border: '4px solid white',
+                      border: '4px solid #1976d2',
                       boxShadow: '0 4px 14px rgba(0,0,0,0.1)'
                     }}
                   />
@@ -368,13 +371,13 @@ const Profile = () => {
               </Box>
 
               <Box sx={{ textAlign: 'center', mb: 3 }}>
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a237e', mb: 1 }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: '#fff', mb: 1 }}>
                   {profileData?.firstName} {profileData?.lastName}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-                  <CalendarMonth sx={{ color: '#666666', mr: 1, fontSize: 20 }} />
-                  <Typography variant="body2" color="#666666">
-                    {profileData?.birthDate || 'Doğum tarihi belirtilmemiş'}
+                  <CalendarMonth sx={{ color: 'rgba(255, 255, 255, 0.7)', mr: 1, fontSize: 20 }} />
+                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                    {formatDate(profileData?.birthDate)}
                   </Typography>
                 </Box>
                 <Button
@@ -384,11 +387,11 @@ const Profile = () => {
                   sx={{
                     borderRadius: '20px',
                     textTransform: 'none',
-                    borderColor: '#1a237e',
-                    color: '#1a237e',
+                    borderColor: '#1976d2',
+                    color: '#fff',
                     '&:hover': {
-                      borderColor: '#0d47a1',
-                      bgcolor: 'rgba(26, 35, 126, 0.04)'
+                      borderColor: '#1565c0',
+                      bgcolor: 'rgba(25, 118, 210, 0.08)'
                     }
                   }}
                 >
@@ -396,28 +399,28 @@ const Profile = () => {
                 </Button>
               </Box>
 
-              <Divider sx={{ my: 3, borderColor: 'rgba(0, 0, 0, 0.12)' }} />
+              <Divider sx={{ my: 3, borderColor: 'rgba(255, 255, 255, 0.12)' }} />
 
               <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" sx={{ color: '#1a237e', mb: 2, fontWeight: 600 }}>
+                <Typography variant="subtitle2" sx={{ color: '#fff', mb: 2, fontWeight: 600 }}>
                   İletişim Bilgileri
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <EmailIcon sx={{ color: '#666666', mr: 1, fontSize: 20 }} />
-                  <Typography variant="body2" color="#666666">
+                  <EmailIcon sx={{ color: 'rgba(255, 255, 255, 0.7)', mr: 1, fontSize: 20 }} />
+                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                     {profileData?.email}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <PhoneIcon sx={{ color: '#666666', mr: 1, fontSize: 20 }} />
-                  <Typography variant="body2" color="#666666">
+                  <PhoneIcon sx={{ color: 'rgba(255, 255, 255, 0.7)', mr: 1, fontSize: 20 }} />
+                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                     {profileData?.phoneNumber || 'Telefon numarası eklenmemiş'}
                   </Typography>
                 </Box>
               </Box>
 
               <Box>
-                <Typography variant="subtitle2" sx={{ color: '#1a237e', mb: 2, fontWeight: 600 }}>
+                <Typography variant="subtitle2" sx={{ color: '#fff', mb: 2, fontWeight: 600 }}>
                   İstatistikler
                 </Typography>
                 <Grid container spacing={2}>
@@ -427,14 +430,14 @@ const Profile = () => {
                       sx={{
                         p: 2,
                         textAlign: 'center',
-                        bgcolor: 'rgba(26, 35, 126, 0.04)',
+                        bgcolor: 'rgba(25, 118, 210, 0.08)',
                         borderRadius: '12px'
                       }}
                     >
-                      <Typography variant="h6" sx={{ color: '#1a237e', fontWeight: 600 }}>
+                      <Typography variant="h6" sx={{ color: '#fff', fontWeight: 600 }}>
                         {participatedEvents.length}
                       </Typography>
-                      <Typography variant="body2" color="#666666">
+                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                         Katıldığım
                       </Typography>
                     </Paper>
@@ -445,14 +448,14 @@ const Profile = () => {
                       sx={{
                         p: 2,
                         textAlign: 'center',
-                        bgcolor: 'rgba(26, 35, 126, 0.04)',
+                        bgcolor: 'rgba(25, 118, 210, 0.08)',
                         borderRadius: '12px'
                       }}
                     >
-                      <Typography variant="h6" sx={{ color: '#1a237e', fontWeight: 600 }}>
+                      <Typography variant="h6" sx={{ color: '#fff', fontWeight: 600 }}>
                         {createdEvents.length}
                       </Typography>
-                      <Typography variant="body2" color="#666666">
+                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                         Düzenlediğim
                       </Typography>
                     </Paper>
@@ -465,7 +468,7 @@ const Profile = () => {
                       sx={{
                         p: 2,
                         textAlign: 'center',
-                        bgcolor: 'rgba(255, 23, 68, 0.04)',
+                        bgcolor: 'rgba(244, 67, 54, 0.08)',
                         borderRadius: '12px',
                         cursor: 'pointer',
                         textDecoration: 'none',
@@ -474,15 +477,15 @@ const Profile = () => {
                         flexDirection: 'column',
                         alignItems: 'center',
                         '&:hover': {
-                          bgcolor: 'rgba(255, 23, 68, 0.08)',
+                          bgcolor: 'rgba(244, 67, 54, 0.12)',
                           transform: 'translateY(-2px)'
                         }
                       }}
                     >
-                      <Typography variant="h6" sx={{ color: '#ff1744', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="h6" sx={{ color: '#f44336', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
                         <FavoriteIcon sx={{ fontSize: 20 }} /> {favorites.length}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#ff1744' }}>
+                      <Typography variant="body2" sx={{ color: '#f44336' }}>
                         Favori Etkinliklerim
                       </Typography>
                     </Paper>
@@ -495,11 +498,11 @@ const Profile = () => {
           {/* Sağ Taraf - Etkinlikler */}
           <Grid item xs={12} md={8}>
             <Paper
-              elevation={0}
+              elevation={3}
               sx={{
                 p: 3,
                 borderRadius: '16px',
-                bgcolor: '#ffffff',
+                bgcolor: '#132f4c',
                 backdropFilter: 'blur(20px)'
               }}
             >
@@ -508,11 +511,11 @@ const Profile = () => {
                 onChange={handleTabChange}
                 sx={{
                   mb: 3,
-                  '& .MuiTabs-indicator': { bgcolor: '#1a237e' },
+                  '& .MuiTabs-indicator': { bgcolor: '#1976d2' },
                   '& .MuiTab-root': { 
-                    color: '#666666',
+                    color: 'rgba(255, 255, 255, 0.7)',
                     '&.Mui-selected': {
-                      color: '#1a237e'
+                      color: '#1976d2'
                     }
                   }
                 }}
@@ -521,394 +524,422 @@ const Profile = () => {
                 <Tab label="Düzenlediğim Etkinlikler" />
               </Tabs>
 
-              <Box>
-                {activeTab === 0 ? (
-                  // Katıldığım Etkinlikler
-                  <Grid container spacing={2}>
-                    {participatedEvents.length === 0 ? (
-                      <Grid item xs={12}>
-                        <Typography variant="body1" sx={{ color: '#666666', textAlign: 'center' }}>
-                          Henüz bir etkinliğe katılmadınız.
-                        </Typography>
-                      </Grid>
-                    ) : (
-                      participatedEvents.map((event) => (
-                        <Grid item xs={12} key={event.id}>
-                          <Card
-                            component={Link}
-                            to={`/events/${event.id}`}
-                            sx={{
-                              display: 'flex',
-                              borderRadius: '12px',
-                              overflow: 'hidden',
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                              textDecoration: 'none',
-                              transition: 'transform 0.2s ease-in-out',
-                              '&:hover': {
-                                transform: 'translateY(-4px)',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                              }
-                            }}
-                          >
-                            <Box
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                  <CircularProgress sx={{ color: '#1976d2' }} />
+                </Box>
+              ) : (
+                <Box>
+                  {activeTab === 0 ? (
+                    // Katıldığım Etkinlikler
+                    <Grid container spacing={2}>
+                      {participatedEvents.length === 0 ? (
+                        <Grid item xs={12}>
+                          <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'center' }}>
+                            Henüz bir etkinliğe katılmadınız.
+                          </Typography>
+                        </Grid>
+                      ) : (
+                        participatedEvents.map((event) => (
+                          <Grid item xs={12} key={event.id}>
+                            <Card
+                              component={Link}
+                              to={`/events/${event.id}`}
                               sx={{
-                                width: '100px',
-                                bgcolor: '#0A2540',
                                 display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                p: 2
+                                borderRadius: '12px',
+                                overflow: 'hidden',
+                                bgcolor: '#1e3a5f',
+                                color: '#fff',
+                                textDecoration: 'none',
+                                transition: 'transform 0.2s ease-in-out',
+                                '&:hover': {
+                                  transform: 'translateY(-4px)',
+                                  boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                                }
                               }}
                             >
-                              <Typography variant="h2" sx={{ color: 'white', fontWeight: 700, lineHeight: 1 }}>
-                                {event?.date ? new Date(event.date).getDate() : '--'}
-                              </Typography>
-                              <Typography variant="h6" sx={{ color: 'white', fontWeight: 500, textTransform: 'uppercase' }}>
-                                {event?.date ? format(new Date(event.date), 'MMM', { locale: tr }) : ''}
-                              </Typography>
-                              <Typography variant="h6" sx={{ color: 'white', mt: 1, fontWeight: 600 }}>
-                                {event?.eventTime || '--:--'}
-                              </Typography>
-                            </Box>
-                            <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                                <Typography variant="h6" sx={{ color: '#1a237e' }}>
-                                  {event.title}
+                              <Box
+                                sx={{
+                                  width: '100px',
+                                  bgcolor: '#0A2540',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  p: 2
+                                }}
+                              >
+                                <Typography variant="h4" sx={{ color: '#fff', fontWeight: 700, lineHeight: 1 }}>
+                                  {event?.date ? new Date(event.date).getDate() : '--'}
                                 </Typography>
-                                <Avatar
-                                  src={profileData?.profilePicture}
-                                  alt={profileData?.firstName}
-                                  sx={{
-                                    width: 40,
-                                    height: 40,
-                                    border: '2px solid white',
-                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                    '&:hover': {
-                                      transform: 'scale(1.1)',
-                                      transition: 'transform 0.2s'
-                                    }
-                                  }}
-                                />
-                              </Box>
-                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                <LocationOn sx={{ fontSize: 18, color: '#1a237e', mr: 0.5 }} />
-                                <Typography variant="body2" color="text.secondary">
-                                  {event.location}
+                                <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 500, textTransform: 'uppercase' }}>
+                                  {event?.date ? format(new Date(event.date), 'MMM', { locale: tr }) : ''}
+                                </Typography>
+                                <Typography variant="subtitle1" sx={{ color: '#fff', mt: 1, fontWeight: 600 }}>
+                                  {event?.eventTime || '--:--'}
                                 </Typography>
                               </Box>
-                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                <Group sx={{ fontSize: 18, color: '#1a237e', mr: 0.5 }} />
-                                <Typography variant="body2" color="text.secondary">
-                                  {event.participantCount} Katılımcı
-                                </Typography>
-                              </Box>
-                              {event.isPaid && (
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                  <AttachMoney sx={{ fontSize: 18, color: '#1a237e', mr: 0.5 }} />
-                                  <Typography variant="body2" color="text.secondary">
-                                    {event.price} TL
+                              <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                                  <Typography variant="h6" sx={{ color: '#fff' }}>
+                                    {event.title}
                                   </Typography>
                                 </Box>
-                              )}
-                            </CardContent>
-                          </Card>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                  <LocationOn sx={{ fontSize: 18, color: 'rgba(255, 255, 255, 0.7)', mr: 0.5 }} />
+                                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                                    {event.location}
+                                  </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                  <Group sx={{ fontSize: 18, color: 'rgba(255, 255, 255, 0.7)', mr: 0.5 }} />
+                                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                                    {event.participantCount} Katılımcı
+                                  </Typography>
+                                </Box>
+                                {event.isPaid && (
+                                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <AttachMoney sx={{ fontSize: 18, color: 'rgba(255, 255, 255, 0.7)', mr: 0.5 }} />
+                                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                                      {event.price} TL
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </CardContent>
+                            </Card>
+                          </Grid>
+                        ))
+                      )}
+                    </Grid>
+                  ) : (
+                    // Düzenlediğim Etkinlikler
+                    <Grid container spacing={2}>
+                      {createdEvents.length === 0 ? (
+                        <Grid item xs={12}>
+                          <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'center' }}>
+                            Henüz bir etkinlik düzenlemediniz.
+                          </Typography>
                         </Grid>
-                      ))
-                    )}
-                  </Grid>
-                ) : (
-                  // Düzenlediğim Etkinlikler
-                  <Grid container spacing={2}>
-                    {createdEvents.length === 0 ? (
-                      <Grid item xs={12}>
-                        <Typography variant="body1" color="text.secondary" textAlign="center">
-                          Henüz bir etkinlik düzenlemediniz.
-                        </Typography>
-                      </Grid>
-                    ) : (
-                      createdEvents.map((event) => (
-                        <Grid item xs={12} key={event.id}>
-                          <Card
-                            component={Link}
-                            to={`/events/${event.id}`}
-                            sx={{
-                              display: 'flex',
-                              borderRadius: '12px',
-                              overflow: 'hidden',
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                              textDecoration: 'none',
-                              transition: 'transform 0.2s ease-in-out',
-                              '&:hover': {
-                                transform: 'translateY(-4px)',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                              }
-                            }}
-                          >
-                            <Box
+                      ) : (
+                        createdEvents.map((event) => (
+                          <Grid item xs={12} key={event.id}>
+                            <Card
+                              component={Link}
+                              to={`/events/${event.id}`}
                               sx={{
-                                width: '100px',
-                                bgcolor: '#0A2540',
                                 display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                p: 2
+                                borderRadius: '12px',
+                                overflow: 'hidden',
+                                bgcolor: '#1e3a5f',
+                                color: '#fff',
+                                textDecoration: 'none',
+                                transition: 'transform 0.2s ease-in-out',
+                                '&:hover': {
+                                  transform: 'translateY(-4px)',
+                                  boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                                }
                               }}
                             >
-                              <Typography variant="h2" sx={{ color: 'white', fontWeight: 700, lineHeight: 1 }}>
-                                {event?.date ? new Date(event.date).getDate() : '--'}
-                              </Typography>
-                              <Typography variant="h6" sx={{ color: 'white', fontWeight: 500, textTransform: 'uppercase' }}>
-                                {event?.date ? format(new Date(event.date), 'MMM', { locale: tr }) : ''}
-                              </Typography>
-                              <Typography variant="h6" sx={{ color: 'white', mt: 1, fontWeight: 600 }}>
-                                {event?.eventTime || '--:--'}
-                              </Typography>
-                            </Box>
-                            <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                                <Typography variant="h6" sx={{ color: '#1a237e' }}>
-                                  {event.title}
+                              <Box
+                                sx={{
+                                  width: '100px',
+                                  bgcolor: '#0A2540',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  p: 2
+                                }}
+                              >
+                                <Typography variant="h4" sx={{ color: '#fff', fontWeight: 700, lineHeight: 1 }}>
+                                  {event?.date ? new Date(event.date).getDate() : '--'}
                                 </Typography>
-                                <Avatar
-                                  src={profileData?.profilePicture}
-                                  alt={profileData?.firstName}
-                                  sx={{
-                                    width: 40,
-                                    height: 40,
-                                    border: '2px solid white',
-                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                  }}
-                                />
-                              </Box>
-                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                <LocationOn sx={{ fontSize: 18, color: '#1a237e', mr: 0.5 }} />
-                                <Typography variant="body2" color="text.secondary">
-                                  {event.location}
+                                <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 500, textTransform: 'uppercase' }}>
+                                  {event?.date ? format(new Date(event.date), 'MMM', { locale: tr }) : ''}
+                                </Typography>
+                                <Typography variant="subtitle1" sx={{ color: '#fff', mt: 1, fontWeight: 600 }}>
+                                  {event?.eventTime || '--:--'}
                                 </Typography>
                               </Box>
-                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                <Group sx={{ fontSize: 18, color: '#1a237e', mr: 0.5 }} />
-                                <Typography variant="body2" color="text.secondary">
-                                  {event.participantCount} Katılımcı
-                                </Typography>
-                              </Box>
-                              {event.isPaid && (
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                  <AttachMoney sx={{ fontSize: 18, color: '#1a237e', mr: 0.5 }} />
-                                  <Typography variant="body2" color="text.secondary">
-                                    {event.price} TL
+                              <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                                  <Typography variant="h6" sx={{ color: '#fff' }}>
+                                    {event.title}
                                   </Typography>
                                 </Box>
-                              )}
-                            </CardContent>
-                          </Card>
-                        </Grid>
-                      ))
-                    )}
-                  </Grid>
-                )}
-              </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                  <LocationOn sx={{ fontSize: 18, color: 'rgba(255, 255, 255, 0.7)', mr: 0.5 }} />
+                                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                                    {event.location}
+                                  </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                  <Group sx={{ fontSize: 18, color: 'rgba(255, 255, 255, 0.7)', mr: 0.5 }} />
+                                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                                    {event.participantCount} Katılımcı
+                                  </Typography>
+                                </Box>
+                                {event.isPaid && (
+                                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <AttachMoney sx={{ fontSize: 18, color: 'rgba(255, 255, 255, 0.7)', mr: 0.5 }} />
+                                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                                      {event.price} TL
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </CardContent>
+                            </Card>
+                          </Grid>
+                        ))
+                      )}
+                    </Grid>
+                  )}
+                </Box>
+              )}
             </Paper>
           </Grid>
         </Grid>
-      </Container>
 
-      {/* Profil Düzenleme Dialog */}
-      <Dialog
-        open={editDialogOpen}
-        onClose={handleEditDialogClose}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '16px',
-            bgcolor: '#ffffff'
-          }
-        }}
-      >
-        <DialogTitle id="edit-profile-dialog-title" sx={{ color: '#1a237e', pb: 1 }}>
-          Profili Düzenle
-        </DialogTitle>
-        <DialogContent>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-          <Grid container spacing={2} sx={{ mt: 0 }}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Ad"
-                value={editData.firstName}
-                onChange={(e) => setEditData({ ...editData, firstName: e.target.value })}
-                variant="outlined"
-                sx={{ mt: 1 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Soyad"
-                value={editData.lastName}
-                onChange={(e) => setEditData({ ...editData, lastName: e.target.value })}
-                variant="outlined"
-                sx={{ mt: 1 }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="E-posta"
-                value={editData.email}
-                onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Telefon"
-                value={editData.phoneNumber}
-                onChange={(e) => setEditData({ ...editData, phoneNumber: e.target.value })}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={tr}>
-                <DatePicker
-                  label="Doğum Tarihi"
-                  value={editData.birthDate}
-                  onChange={(date) => setEditData({ ...editData, birthDate: date })}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      variant: "outlined"
-                    }
+        {/* Profil Düzenleme Dialog */}
+        <Dialog 
+          open={editDialogOpen} 
+          onClose={handleEditDialogClose}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: '16px',
+              bgcolor: '#132f4c',
+              color: '#fff'
+            }
+          }}
+        >
+          <DialogTitle sx={{ color: '#fff' }}>
+            Profili Düzenle
+          </DialogTitle>
+          <DialogContent>
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Ad"
+                  value={editData.firstName}
+                  onChange={(e) => setEditData({ ...editData, firstName: e.target.value })}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
+                      '&:hover fieldset': { borderColor: '#1976d2' },
+                      '&.Mui-focused fieldset': { borderColor: '#1976d2' }
+                    },
+                    '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
+                    '& .MuiInputBase-input': { color: '#fff' }
                   }}
-                  maxDate={new Date()}
-                  minDate={new Date(1900, 0, 1)}
                 />
-              </LocalizationProvider>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Soyad"
+                  value={editData.lastName}
+                  onChange={(e) => setEditData({ ...editData, lastName: e.target.value })}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
+                      '&:hover fieldset': { borderColor: '#1976d2' },
+                      '&.Mui-focused fieldset': { borderColor: '#1976d2' }
+                    },
+                    '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
+                    '& .MuiInputBase-input': { color: '#fff' }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="E-posta"
+                  value={editData.email}
+                  onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
+                      '&:hover fieldset': { borderColor: '#1976d2' },
+                      '&.Mui-focused fieldset': { borderColor: '#1976d2' }
+                    },
+                    '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
+                    '& .MuiInputBase-input': { color: '#fff' }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Telefon"
+                  value={editData.phoneNumber}
+                  onChange={(e) => setEditData({ ...editData, phoneNumber: e.target.value })}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
+                      '&:hover fieldset': { borderColor: '#1976d2' },
+                      '&.Mui-focused fieldset': { borderColor: '#1976d2' }
+                    },
+                    '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
+                    '& .MuiInputBase-input': { color: '#fff' }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={tr}>
+                  <DatePicker
+                    label="Doğum Tarihi"
+                    value={editData.birthDate}
+                    onChange={(newValue) => setEditData({ ...editData, birthDate: newValue })}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        fullWidth
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
+                            '&:hover fieldset': { borderColor: '#1976d2' },
+                            '&.Mui-focused fieldset': { borderColor: '#1976d2' }
+                          },
+                          '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
+                          '& .MuiInputBase-input': { color: '#fff' }
+                        }}
+                      />
+                    )}
+                  />
+                </LocalizationProvider>
+              </Grid>
             </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button
-            onClick={handleEditDialogClose}
-            sx={{
-              color: 'text.secondary',
-              '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' }
-            }}
-          >
-            İptal
-          </Button>
-          <Button
-            onClick={handleEditSubmit}
-            variant="contained"
-            sx={{
-              bgcolor: '#1a237e',
-              '&:hover': { bgcolor: '#0d47a1' },
-              px: 3
-            }}
-          >
-            Kaydet
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </DialogContent>
+          <DialogActions sx={{ p: 3 }}>
+            <Button 
+              onClick={handleEditDialogClose}
+              sx={{ 
+                color: 'rgba(255, 255, 255, 0.7)',
+                '&:hover': { color: '#fff' }
+              }}
+            >
+              İptal
+            </Button>
+            <Button 
+              onClick={handleEditSubmit}
+              variant="contained"
+              sx={{
+                bgcolor: '#1976d2',
+                '&:hover': { bgcolor: '#1565c0' }
+              }}
+            >
+              Kaydet
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-      {/* Profil Fotoğrafı Güncelleme Dialog */}
-      <Dialog
-        open={imageUploadDialog}
-        onClose={() => {
-          setImageUploadDialog(false);
-          setSelectedImage(null);
-          setError('');
-        }}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '16px',
-            bgcolor: '#ffffff'
-          }
-        }}
-      >
-        <DialogTitle id="upload-photo-dialog-title" sx={{ color: '#1a237e' }}>
-          Profil Fotoğrafını Güncelle
-        </DialogTitle>
-        <DialogContent>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-          {selectedImage && (
-            <Box sx={{ 
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 2,
-              my: 2
-            }}>
-              <Box sx={{
+        {/* Profil Fotoğrafı Güncelleme Dialog */}
+        <Dialog
+          open={imageUploadDialog}
+          onClose={() => {
+            setImageUploadDialog(false);
+            setSelectedImage(null);
+            setError('');
+          }}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              bgcolor: '#132f4c',
+              borderRadius: '16px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+            }
+          }}
+        >
+          <DialogTitle sx={{ 
+            color: '#fff',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+            pb: 2 
+          }}>
+            Profil Fotoğrafını Güncelle
+          </DialogTitle>
+          <DialogContent sx={{ py: 3 }}>
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+            {selectedImage && (
+              <Box sx={{ 
                 width: '100%',
-                maxWidth: '400px',
-                height: '400px',
                 display: 'flex',
-                justifyContent: 'center',
+                flexDirection: 'column',
                 alignItems: 'center',
-                bgcolor: '#f5f5f5',
-                borderRadius: '8px',
-                overflow: 'hidden'
+                gap: 2,
+                my: 2
               }}>
-                <img
-                  src={URL.createObjectURL(selectedImage)}
-                  alt="Profil fotoğrafı önizleme"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain'
-                  }}
-                />
+                <Box sx={{
+                  width: '100%',
+                  maxWidth: '400px',
+                  height: '400px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  bgcolor: 'rgba(0, 0, 0, 0.2)',
+                  borderRadius: '8px',
+                  overflow: 'hidden'
+                }}>
+                  <img
+                    src={URL.createObjectURL(selectedImage)}
+                    alt="Profil fotoğrafı önizleme"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain'
+                    }}
+                  />
+                </Box>
+                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'center' }}>
+                  Seçilen fotoğrafı profil fotoğrafınız olarak kaydetmek için "Kaydet" butonuna tıklayın
+                </Typography>
               </Box>
-              <Typography variant="body2" color="text.secondary">
-                Seçilen fotoğrafı profil fotoğrafınız olarak kaydetmek için "Kaydet" butonuna tıklayın
-              </Typography>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button
-            onClick={() => {
-              setImageUploadDialog(false);
-              setSelectedImage(null);
-              setError('');
-            }}
-            sx={{
-              color: 'text.secondary',
-              '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' }
-            }}
-          >
-            İptal
-          </Button>
-          <Button
-            onClick={handleImageUploadSubmit}
-            variant="contained"
-            disabled={uploadLoading || !selectedImage}
-            sx={{
-              bgcolor: '#1a237e',
-              '&:hover': { bgcolor: '#0d47a1' },
-              px: 3
-            }}
-          >
-            {uploadLoading ? <CircularProgress size={24} /> : 'Kaydet'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ 
+            p: 3,
+            borderTop: '1px solid rgba(255, 255, 255, 0.12)'
+          }}>
+            <Button
+              onClick={() => {
+                setImageUploadDialog(false);
+                setSelectedImage(null);
+                setError('');
+              }}
+              sx={{
+                color: 'rgba(255, 255, 255, 0.7)',
+                '&:hover': { color: '#fff' }
+              }}
+            >
+              İptal
+            </Button>
+            <Button
+              onClick={handleImageUploadSubmit}
+              variant="contained"
+              disabled={uploadLoading || !selectedImage}
+              sx={{
+                bgcolor: '#1976d2',
+                '&:hover': { bgcolor: '#1565c0' }
+              }}
+            >
+              {uploadLoading ? 'Yükleniyor...' : 'Kaydet'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Container>
     </Box>
   );
 };

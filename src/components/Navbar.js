@@ -18,7 +18,9 @@ import {
   ListItemText,
   ListItemAvatar,
   ListItemIcon,
-  Paper
+  Paper,
+  Popper,
+  CircularProgress
 } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -41,6 +43,7 @@ import { debounce } from 'lodash';
 import { format } from 'date-fns';
 import { useTheme } from '@mui/material/styles';
 import { toast } from 'react-hot-toast';
+import Logo from './Logo';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -182,7 +185,8 @@ const Navbar = () => {
     <AppBar 
       position="fixed" 
       sx={{ 
-        bgcolor: 'rgba(10, 25, 41, 0.8)',
+        bgcolor: '#0A1929',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
         backdropFilter: 'blur(10px)',
         boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
         height: '64px',
@@ -211,6 +215,8 @@ const Navbar = () => {
             component={Link}
             to={user ? '/dashboard' : '/'}
             sx={{
+              display: 'flex',
+              alignItems: 'center',
               textDecoration: 'none',
               color: 'white',
               fontWeight: 'bold',
@@ -226,6 +232,7 @@ const Navbar = () => {
               }
             }}
           >
+            <Logo size={36} />
             EventVerse
           </Typography>
 
