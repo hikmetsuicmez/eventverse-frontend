@@ -19,9 +19,18 @@ import {
   Alert,
   InputAdornment,
   Chip,
-  Stack
+  Stack,
+  Tooltip,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Divider,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
-import { Search, FilterList, Clear, ClearAll, LocationOn, CalendarToday, Category } from '@mui/icons-material';
+import { Search, FilterList, Clear, ClearAll, LocationOn, CalendarToday, Category, Event } from '@mui/icons-material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -84,7 +93,7 @@ const Events = () => {
       const end = field === 'endDate' ? date : searchParams.endDate;
       
       if (start && end) {
-        const dateRange = `${format(new Date(start), 'dd/MM/yyyy')} - ${format(new Date(end), 'dd/MM/yyyy')}`;
+        const dateRange = `${format(new Date(start), 'dd MMMM yyyy', { locale: tr })} - ${format(new Date(end), 'dd MMMM yyyy', { locale: tr })}`;
         addSelectedFilter('date', dateRange);
       } else {
         addSelectedFilter('date', null);
@@ -166,7 +175,7 @@ const Events = () => {
       const end = field === 'endDate' ? date : searchParams.endDate;
       
       if (start && end) {
-        const dateRange = `${format(start, 'dd/MM/yyyy')} - ${format(end, 'dd/MM/yyyy')}`;
+        const dateRange = `${format(start, 'dd MMMM yyyy', { locale: tr })} - ${format(end, 'dd MMMM yyyy', { locale: tr })}`;
         addSelectedFilter('date', dateRange);
       } else {
         addSelectedFilter('date', null);
@@ -809,10 +818,10 @@ const Events = () => {
                                 {event.location}
                               </Typography>
                             </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <CalendarToday fontSize="small" sx={{ color: 'primary.main' }} />
-                              <Typography variant="body2" sx={{ color: 'white' }}>
-                                {format(new Date(event.date), 'dd MMMM yyyy')} - {event.eventTime}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
+                              <CalendarToday fontSize="small" />
+                              <Typography variant="body2">
+                                {format(new Date(event.date), 'dd MMMM yyyy', { locale: tr })}
                               </Typography>
                             </Box>
                             {event.hasAgeLimit && (

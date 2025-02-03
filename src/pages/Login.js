@@ -48,13 +48,12 @@ const Login = () => {
       } catch (error) {
         console.error('Giriş hatası:', error);
         
-        // Hata mesajlarını kullanıcı dostu hale getir
-        if (error.response?.status === 401) {
+        if (error.response?.data?.message) {
+          setLoginError(error.response.data.message);
+        } else if (error.response?.status === 401) {
           setLoginError('E-posta adresi veya şifre hatalı');
         } else if (error.response?.status === 404) {
           setLoginError('Bu e-posta adresi ile kayıtlı bir hesap bulunamadı');
-        } else if (error.response?.status === 400) {
-          setLoginError('Lütfen tüm alanları doğru şekilde doldurunuz');
         } else if (!navigator.onLine) {
           setLoginError('İnternet bağlantınızı kontrol ediniz');
         } else {
