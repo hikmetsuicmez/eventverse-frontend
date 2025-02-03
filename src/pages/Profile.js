@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Container,
@@ -22,7 +22,10 @@ import {
   CircularProgress,
   Fade,
   Tooltip,
-  Alert
+  Alert,
+  Slider,
+  Stack,
+  useTheme
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -34,7 +37,12 @@ import {
   LocationOn,
   Group,
   AttachMoney,
-  Favorite as FavoriteIcon
+  Favorite as FavoriteIcon,
+  ZoomIn,
+  ZoomOut,
+  Crop,
+  RotateLeft,
+  RotateRight
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
@@ -46,7 +54,8 @@ import FavoriteService from '../services/favorite.service';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { useTheme } from '../context/ThemeContext';
+import ReactCrop, { makeAspectCrop, centerCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
 const Profile = () => {
   const { user: authUser, updateUser } = useAuth();
@@ -68,7 +77,22 @@ const Profile = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [error, setError] = useState('');
-  const { theme } = useTheme();
+  const theme = useTheme();
+  const [imageScale, setImageScale] = useState(1);
+  const [imageRotation, setImageRotation] = useState(0);
+  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [crop, setCrop] = useState({
+    unit: 'px',
+    x: 0,
+    y: 0,
+    width: 200,
+    height: 200
+  });
+  const [completedCrop, setCompletedCrop] = useState(null);
+  const imgRef = useRef(null);
+  const previewCanvasRef = useRef(null);
 
   useEffect(() => {
     fetchProfileData();
@@ -165,7 +189,7 @@ const Profile = () => {
 
   const handleImageUploadSubmit = async () => {
     if (!selectedImage) return;
-
+    
     setUploadLoading(true);
     setError('');
     try {
@@ -174,25 +198,20 @@ const Profile = () => {
       const response = await UserService.updateProfilePicture(formData);
       
       if (response && response.data) {
-        // Profil verilerini güncelle
         const updatedProfileData = {
           ...profileData,
           profilePicture: response.data
         };
         setProfileData(updatedProfileData);
         
-        // AuthContext'teki user bilgisini güncelle
         const updatedUser = {
           ...authUser,
           profilePicture: response.data
         };
         updateUser(updatedUser);
         
-        // Dialog'u kapat ve seçili resmi temizle
         setImageUploadDialog(false);
         setSelectedImage(null);
-
-        // Sayfayı yenile
         window.location.reload();
       }
     } catch (error) {
@@ -215,6 +234,56 @@ const Profile = () => {
     }
   };
 
+  const handleImageMouseDown = (e) => {
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - imagePosition.x,
+      y: e.clientY - imagePosition.y
+    });
+  };
+
+  const handleImageMouseMove = (e) => {
+    if (isDragging) {
+      setImagePosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      });
+    }
+  };
+
+  const handleImageMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleRotateLeft = () => {
+    setImageRotation((prev) => prev - 90);
+  };
+
+  const handleRotateRight = () => {
+    setImageRotation((prev) => prev + 90);
+  };
+
+  const handleScaleChange = (event, newValue) => {
+    setImageScale(newValue);
+  };
+
+  const resetImageSettings = () => {
+    setImageScale(1);
+    setImageRotation(0);
+    setImagePosition({ x: 0, y: 0 });
+  };
+
+  const handleZoomChange = (event, newValue) => {
+    const size = Math.max(newValue, 10);
+    setCrop(prev => ({
+      ...prev,
+      width: size,
+      height: size,
+      x: Math.max(0, prev.x + ((prev.width - size) / 2)),
+      y: Math.max(0, prev.y + ((prev.height - size) / 2))
+    }));
+  };
+
   if (loading) {
     return (
       <Box
@@ -224,7 +293,7 @@ const Profile = () => {
           alignItems: 'center',
           minHeight: 'calc(100vh - 64px)',
           pt: '64px',
-          bgcolor: '#001E3C'
+          bgcolor: '#0A1929'
         }}
       >
         <CircularProgress />
@@ -255,7 +324,7 @@ const Profile = () => {
               sx={{
                 p: 3,
                 borderRadius: '16px',
-                bgcolor: theme.background.paper,
+                bgcolor: '#ffffff',
                 backdropFilter: 'blur(20px)',
                 position: 'relative'
               }}
@@ -299,12 +368,12 @@ const Profile = () => {
               </Box>
 
               <Box sx={{ textAlign: 'center', mb: 3 }}>
-                <Typography variant="h5" sx={{ fontWeight: 600, color: theme.text.primary, mb: 1 }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a237e', mb: 1 }}>
                   {profileData?.firstName} {profileData?.lastName}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-                  <CalendarMonth sx={{ color: theme.text.primary, mr: 1, fontSize: 20 }} />
-                  <Typography variant="body2" color={theme.text.secondary}>
+                  <CalendarMonth sx={{ color: '#666666', mr: 1, fontSize: 20 }} />
+                  <Typography variant="body2" color="#666666">
                     {profileData?.birthDate || 'Doğum tarihi belirtilmemiş'}
                   </Typography>
                 </Box>
@@ -315,10 +384,10 @@ const Profile = () => {
                   sx={{
                     borderRadius: '20px',
                     textTransform: 'none',
-                    borderColor: theme.accent.main,
-                    color: theme.accent.main,
+                    borderColor: '#1a237e',
+                    color: '#1a237e',
                     '&:hover': {
-                      borderColor: theme.accent.dark,
+                      borderColor: '#0d47a1',
                       bgcolor: 'rgba(26, 35, 126, 0.04)'
                     }
                   }}
@@ -327,28 +396,28 @@ const Profile = () => {
                 </Button>
               </Box>
 
-              <Divider sx={{ my: 3 }} />
+              <Divider sx={{ my: 3, borderColor: 'rgba(0, 0, 0, 0.12)' }} />
 
               <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" sx={{ color: theme.text.primary, mb: 2, fontWeight: 600 }}>
+                <Typography variant="subtitle2" sx={{ color: '#1a237e', mb: 2, fontWeight: 600 }}>
                   İletişim Bilgileri
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <EmailIcon sx={{ color: theme.text.primary, mr: 1, fontSize: 20 }} />
-                  <Typography variant="body2" color={theme.text.secondary}>
+                  <EmailIcon sx={{ color: '#666666', mr: 1, fontSize: 20 }} />
+                  <Typography variant="body2" color="#666666">
                     {profileData?.email}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <PhoneIcon sx={{ color: theme.text.primary, mr: 1, fontSize: 20 }} />
-                  <Typography variant="body2" color={theme.text.secondary}>
+                  <PhoneIcon sx={{ color: '#666666', mr: 1, fontSize: 20 }} />
+                  <Typography variant="body2" color="#666666">
                     {profileData?.phoneNumber || 'Telefon numarası eklenmemiş'}
                   </Typography>
                 </Box>
               </Box>
 
               <Box>
-                <Typography variant="subtitle2" sx={{ color: theme.text.primary, mb: 2, fontWeight: 600 }}>
+                <Typography variant="subtitle2" sx={{ color: '#1a237e', mb: 2, fontWeight: 600 }}>
                   İstatistikler
                 </Typography>
                 <Grid container spacing={2}>
@@ -358,14 +427,14 @@ const Profile = () => {
                       sx={{
                         p: 2,
                         textAlign: 'center',
-                        bgcolor: theme.background.card,
+                        bgcolor: 'rgba(26, 35, 126, 0.04)',
                         borderRadius: '12px'
                       }}
                     >
-                      <Typography variant="h6" sx={{ color: theme.text.primary, fontWeight: 600 }}>
+                      <Typography variant="h6" sx={{ color: '#1a237e', fontWeight: 600 }}>
                         {participatedEvents.length}
                       </Typography>
-                      <Typography variant="body2" color={theme.text.secondary}>
+                      <Typography variant="body2" color="#666666">
                         Katıldığım
                       </Typography>
                     </Paper>
@@ -376,14 +445,14 @@ const Profile = () => {
                       sx={{
                         p: 2,
                         textAlign: 'center',
-                        bgcolor: theme.background.card,
+                        bgcolor: 'rgba(26, 35, 126, 0.04)',
                         borderRadius: '12px'
                       }}
                     >
-                      <Typography variant="h6" sx={{ color: theme.text.primary, fontWeight: 600 }}>
+                      <Typography variant="h6" sx={{ color: '#1a237e', fontWeight: 600 }}>
                         {createdEvents.length}
                       </Typography>
-                      <Typography variant="body2" color={theme.text.secondary}>
+                      <Typography variant="body2" color="#666666">
                         Düzenlediğim
                       </Typography>
                     </Paper>
@@ -430,7 +499,7 @@ const Profile = () => {
               sx={{
                 p: 3,
                 borderRadius: '16px',
-                bgcolor: theme.background.paper,
+                bgcolor: '#ffffff',
                 backdropFilter: 'blur(20px)'
               }}
             >
@@ -439,8 +508,13 @@ const Profile = () => {
                 onChange={handleTabChange}
                 sx={{
                   mb: 3,
-                  '& .MuiTabs-indicator': { bgcolor: theme.accent.main },
-                  '& .MuiTab-root': { color: theme.text.primary }
+                  '& .MuiTabs-indicator': { bgcolor: '#1a237e' },
+                  '& .MuiTab-root': { 
+                    color: '#666666',
+                    '&.Mui-selected': {
+                      color: '#1a237e'
+                    }
+                  }
                 }}
               >
                 <Tab label="Katıldığım Etkinlikler" />
@@ -453,7 +527,7 @@ const Profile = () => {
                   <Grid container spacing={2}>
                     {participatedEvents.length === 0 ? (
                       <Grid item xs={12}>
-                        <Typography variant="body1" color="text.secondary" textAlign="center">
+                        <Typography variant="body1" sx={{ color: '#666666', textAlign: 'center' }}>
                           Henüz bir etkinliğe katılmadınız.
                         </Typography>
                       </Grid>
@@ -650,13 +724,13 @@ const Profile = () => {
         PaperProps={{
           sx: {
             borderRadius: '16px',
-            bgcolor: theme.background.paper,
-            backdropFilter: 'blur(20px)'
+            bgcolor: '#ffffff'
           }
         }}
-        aria-labelledby="edit-profile-dialog-title"
       >
-        <DialogTitle id="edit-profile-dialog-title" sx={{ pb: 1 }}>Profili Düzenle</DialogTitle>
+        <DialogTitle id="edit-profile-dialog-title" sx={{ color: '#1a237e', pb: 1 }}>
+          Profili Düzenle
+        </DialogTitle>
         <DialogContent>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -745,22 +819,26 @@ const Profile = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Fotoğraf Yükleme Dialog */}
+      {/* Profil Fotoğrafı Güncelleme Dialog */}
       <Dialog
         open={imageUploadDialog}
-        onClose={() => setImageUploadDialog(false)}
-        maxWidth="xs"
+        onClose={() => {
+          setImageUploadDialog(false);
+          setSelectedImage(null);
+          setError('');
+        }}
+        maxWidth="sm"
         fullWidth
         PaperProps={{
           sx: {
             borderRadius: '16px',
-            bgcolor: theme.background.paper,
-            backdropFilter: 'blur(20px)'
+            bgcolor: '#ffffff'
           }
         }}
-        aria-labelledby="upload-photo-dialog-title"
       >
-        <DialogTitle id="upload-photo-dialog-title">Profil Fotoğrafını Güncelle</DialogTitle>
+        <DialogTitle id="upload-photo-dialog-title" sx={{ color: '#1a237e' }}>
+          Profil Fotoğrafını Güncelle
+        </DialogTitle>
         <DialogContent>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -768,23 +846,46 @@ const Profile = () => {
             </Alert>
           )}
           {selectedImage && (
-            <Box
-              sx={{
+            <Box sx={{ 
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 2,
+              my: 2
+            }}>
+              <Box sx={{
                 width: '100%',
-                height: 200,
-                backgroundImage: `url(${URL.createObjectURL(selectedImage)})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
+                maxWidth: '400px',
+                height: '400px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                bgcolor: '#f5f5f5',
                 borderRadius: '8px',
-                mb: 2
-              }}
-            />
+                overflow: 'hidden'
+              }}>
+                <img
+                  src={URL.createObjectURL(selectedImage)}
+                  alt="Profil fotoğrafı önizleme"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain'
+                  }}
+                />
+              </Box>
+              <Typography variant="body2" color="text.secondary">
+                Seçilen fotoğrafı profil fotoğrafınız olarak kaydetmek için "Kaydet" butonuna tıklayın
+              </Typography>
+            </Box>
           )}
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
           <Button
             onClick={() => {
               setImageUploadDialog(false);
+              setSelectedImage(null);
               setError('');
             }}
             sx={{
@@ -797,7 +898,7 @@ const Profile = () => {
           <Button
             onClick={handleImageUploadSubmit}
             variant="contained"
-            disabled={uploadLoading}
+            disabled={uploadLoading || !selectedImage}
             sx={{
               bgcolor: '#1a237e',
               '&:hover': { bgcolor: '#0d47a1' },

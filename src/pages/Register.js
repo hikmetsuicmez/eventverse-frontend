@@ -11,6 +11,7 @@ import {
   InputAdornment,
   IconButton,
   CircularProgress,
+  Grid,
 } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
@@ -134,10 +135,11 @@ const Register = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(180deg, #001E3C 0%, #0A47A9 100%)',
-        pt: '64px',
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: '#0A1929',
+        py: 8
       }}
     >
       <Container maxWidth="sm">
@@ -145,29 +147,26 @@ const Register = () => {
           elevation={3}
           sx={{
             p: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            background: 'rgba(255, 255, 255, 0.95)',
             borderRadius: '16px',
-            mt: 4,
-            mb: 4,
+            bgcolor: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
           }}
         >
           <Typography
-            component="h1"
             variant="h4"
+            align="center"
             sx={{
               mb: 4,
-              color: '#001E3C',
-              fontWeight: 700,
+              color: '#fff',
+              fontWeight: 600
             }}
           >
             Kayıt Ol
           </Typography>
-
-          <Box component="form" onSubmit={formik.handleSubmit} sx={{ width: '100%' }}>
-            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <form onSubmit={formik.handleSubmit}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Ad"
@@ -177,8 +176,32 @@ const Register = () => {
                 onBlur={formik.handleBlur}
                 error={formik.touched.firstName && Boolean(formik.errors.firstName)}
                 helperText={formik.touched.firstName && formik.errors.firstName}
-                disabled={formik.isSubmitting}
-              />
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      color: '#fff',
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.5)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#90caf9',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      '&.Mui-focused': {
+                        color: '#90caf9',
+                      },
+                    },
+                    '& .MuiFormHelperText-root': {
+                      color: '#f44336',
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Soyad"
@@ -188,10 +211,32 @@ const Register = () => {
                 onBlur={formik.handleBlur}
                 error={formik.touched.lastName && Boolean(formik.errors.lastName)}
                 helperText={formik.touched.lastName && formik.errors.lastName}
-                disabled={formik.isSubmitting}
-              />
-            </Box>
-
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      color: '#fff',
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.5)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#90caf9',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      '&.Mui-focused': {
+                        color: '#90caf9',
+                      },
+                    },
+                    '& .MuiFormHelperText-root': {
+                      color: '#f44336',
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
             <TextField
               fullWidth
               label="E-posta"
@@ -202,10 +247,32 @@ const Register = () => {
               onBlur={formik.handleBlur}
               error={formik.touched.email && Boolean(formik.errors.email)}
               helperText={formik.touched.email && formik.errors.email}
-              sx={{ mb: 2 }}
-              disabled={formik.isSubmitting}
-            />
-
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      color: '#fff',
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.5)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#90caf9',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      '&.Mui-focused': {
+                        color: '#90caf9',
+                      },
+                    },
+                    '& .MuiFormHelperText-root': {
+                      color: '#f44336',
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
             <TextField
               fullWidth
               label="Şifre"
@@ -236,8 +303,29 @@ const Register = () => {
                   </Box>
                 )
               }
-              sx={{ mb: 2 }}
-              disabled={formik.isSubmitting}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      color: '#fff',
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.5)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#90caf9',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      '&.Mui-focused': {
+                        color: '#90caf9',
+                      },
+                    },
+                    '& .MuiFormHelperText-root': {
+                      color: '#f44336',
+                    },
+                  }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -252,7 +340,8 @@ const Register = () => {
                 ),
               }}
             />
-
+              </Grid>
+              <Grid item xs={12}>
             <TextField
               fullWidth
               label="Şifre Tekrarı"
@@ -263,8 +352,29 @@ const Register = () => {
               onBlur={formik.handleBlur}
               error={formik.touched.confirmPassword && Boolean(formik.errors.confirmPassword)}
               helperText={formik.touched.confirmPassword && formik.errors.confirmPassword}
-              sx={{ mb: 2 }}
-              disabled={formik.isSubmitting}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      color: '#fff',
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.5)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#90caf9',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      '&.Mui-focused': {
+                        color: '#90caf9',
+                      },
+                    },
+                    '& .MuiFormHelperText-root': {
+                      color: '#f44336',
+                    },
+                  }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -279,7 +389,8 @@ const Register = () => {
                 ),
               }}
             />
-
+              </Grid>
+              <Grid item xs={12}>
             <TextField
               fullWidth
               label="Telefon Numarası"
@@ -289,14 +400,36 @@ const Register = () => {
               onBlur={formik.handleBlur}
               error={formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)}
               helperText={formik.touched.phoneNumber && formik.errors.phoneNumber}
-              sx={{ mb: 2 }}
-              disabled={formik.isSubmitting}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      color: '#fff',
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.5)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#90caf9',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      '&.Mui-focused': {
+                        color: '#90caf9',
+                      },
+                    },
+                    '& .MuiFormHelperText-root': {
+                      color: '#f44336',
+                    },
+                  }}
               InputProps={{
                 startAdornment: <InputAdornment position="start">+90</InputAdornment>,
               }}
               placeholder="5xxxxxxxxx"
             />
-
+              </Grid>
+              <Grid item xs={12}>
             <TextField
               fullWidth
               label="Adres (Opsiyonel)"
@@ -308,10 +441,32 @@ const Register = () => {
               helperText={formik.touched.address && formik.errors.address}
               multiline
               rows={3}
-              sx={{ mb: 2 }}
-              disabled={formik.isSubmitting}
-            />
-
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      color: '#fff',
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.5)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#90caf9',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      '&.Mui-focused': {
+                        color: '#90caf9',
+                      },
+                    },
+                    '& .MuiFormHelperText-root': {
+                      color: '#f44336',
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
             <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={tr}>
               <DatePicker
                 label="Doğum Tarihi"
@@ -331,42 +486,37 @@ const Register = () => {
                 disabled={formik.isSubmitting}
               />
             </LocalizationProvider>
-
+              </Grid>
+            </Grid>
             <Button
-              type="submit"
               fullWidth
+              type="submit"
               variant="contained"
               disabled={formik.isSubmitting}
               sx={{
-                bgcolor: '#2196F3',
-                color: 'white',
+                mt: 3,
+                mb: 2,
                 py: 1.5,
-                fontSize: '1.1rem',
-                textTransform: 'none',
-                '&:hover': {
-                  bgcolor: '#1976D2',
-                },
+                bgcolor: '#1976d2',
+                '&:hover': { bgcolor: '#1565c0' }
               }}
             >
-              {formik.isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Kayıt Ol'}
+              {formik.isSubmitting ? <CircularProgress size={24} /> : 'Kayıt Ol'}
             </Button>
-
-            <Box sx={{ mt: 2, textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">
+          </form>
+          <Typography align="center" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                 Zaten hesabınız var mı?{' '}
                 <Link
                   to="/login"
                   style={{
-                    color: '#2196F3',
+                color: '#90caf9',
                     textDecoration: 'none',
-                    fontWeight: 500,
+                fontWeight: 500
                   }}
                 >
                   Giriş Yap
                 </Link>
               </Typography>
-            </Box>
-          </Box>
         </Paper>
       </Container>
     </Box>

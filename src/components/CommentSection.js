@@ -130,14 +130,14 @@ const CommentSection = ({ eventId }) => {
                                 />
                                 <Box sx={{ flex: 1 }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                                        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a237e' }}>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#ffffff' }}>
                                             {comment.user.firstName} {comment.user.lastName}
                                         </Typography>
-                                        <Typography variant="caption" color="text.secondary">
+                                        <Typography variant="caption" color="rgba(255, 255, 255, 0.6)">
                                             {format(new Date(comment.createdAt), 'dd MMMM yyyy HH:mm', { locale: tr })}
                                         </Typography>
                                     </Box>
-                                    <Typography variant="body2" sx={{ color: '#333', mb: 1 }}>
+                                    <Typography variant="body2" sx={{ color: '#ffffff', mb: 1 }}>
                                         {comment.content}
                                     </Typography>
                                     
@@ -223,7 +223,7 @@ const CommentSection = ({ eventId }) => {
                                                             variant="subtitle2" 
                                                             sx={{ 
                                                                 fontWeight: reply.eventOwnerReply ? 700 : 600,
-                                                                color: reply.eventOwnerReply ? '#1a237e' : 'text.primary',
+                                                                color: reply.eventOwnerReply ? '#90caf9' : '#ffffff',
                                                                 fontSize: reply.eventOwnerReply ? '0.95rem' : '0.875rem'
                                                             }}
                                                         >
@@ -253,7 +253,7 @@ const CommentSection = ({ eventId }) => {
                                                     <Typography 
                                                         variant="body2" 
                                                         sx={{ 
-                                                            color: reply.eventOwnerReply ? '#1a237e' : '#333',
+                                                            color: reply.eventOwnerReply ? '#90caf9' : '#ffffff',
                                                             fontWeight: reply.eventOwnerReply ? 500 : 400,
                                                             lineHeight: 1.6
                                                         }}

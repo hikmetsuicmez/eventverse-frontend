@@ -211,7 +211,7 @@ const UpdateEvent = () => {
         <Box sx={{ pt: '84px', pb: 8, bgcolor: '#0A1929', minHeight: '100vh' }}>
             <Container maxWidth="lg">
                 <Paper elevation={0} sx={{ p: 4, borderRadius: '16px' }}>
-                    <Typography variant="h4" sx={{ mb: 4, color: '#1a237e', fontWeight: 600 }}>
+                    <Typography variant="h4" sx={{ mb: 4, color: '#ffffff', fontWeight: 600 }}>
                         Etkinliği Düzenle
                     </Typography>
 
@@ -470,7 +470,7 @@ const UpdateEvent = () => {
                                         variant="outlined"
                                         onClick={() => navigate(`/events/${id}`)}
                                         sx={{
-                                            color: '#1a237e',
+                                            color: '#ffffff',
                                             borderColor: '#1a237e',
                                             '&:hover': {
                                                 borderColor: '#0d47a1',
@@ -484,8 +484,8 @@ const UpdateEvent = () => {
                                         type="submit"
                                         variant="contained"
                                         sx={{
-                                            bgcolor: '#1a237e',
-                                            '&:hover': { bgcolor: '#0d47a1' }
+                                            bgcolor: '#ffffff',
+                                            '&:hover': { bgcolor: '#ffffff' }
                                         }}
                                     >
                                         Güncelle

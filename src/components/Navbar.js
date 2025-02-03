@@ -182,8 +182,9 @@ const Navbar = () => {
     <AppBar 
       position="fixed" 
       sx={{ 
-        bgcolor: '#0A1929',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        bgcolor: 'rgba(10, 25, 41, 0.8)',
+        backdropFilter: 'blur(10px)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
         height: '64px',
         display: 'flex',
         justifyContent: 'center'
@@ -202,7 +203,7 @@ const Navbar = () => {
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center', 
-          gap: 2,
+          gap: 3,
           flex: '1 1 auto'
         }}>
           <Typography
@@ -213,31 +214,74 @@ const Navbar = () => {
               textDecoration: 'none',
               color: 'white',
               fontWeight: 'bold',
-              fontSize: '1.3rem',
-              transition: 'all 0.2s',
+              fontSize: '1.5rem',
+              letterSpacing: '0.5px',
+              background: 'linear-gradient(45deg, #90caf9, #42a5f5)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              transition: 'all 0.3s',
               '&:hover': {
-                color: '#90caf9',
-                transform: 'translateY(-2px)'
+                transform: 'translateY(-2px)',
+                filter: 'brightness(1.2)'
               }
             }}
           >
             EventVerse
           </Typography>
 
+          {/* Ana Menü Linkleri */}
+          {user && (
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <Button
+                component={Link}
+                to="/dashboard"
+                startIcon={<HomeIcon />}
+                sx={{
+                  color: 'white',
+                  textTransform: 'none',
+                  fontSize: '0.95rem',
+                  '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    transform: 'translateY(-2px)'
+                  }
+                }}
+              >
+                Ana Sayfa
+              </Button>
+              <Button
+                component={Link}
+                to="/events"
+                startIcon={<EventIcon />}
+                sx={{
+                  color: 'white',
+                  textTransform: 'none',
+                  fontSize: '0.95rem',
+                  '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    transform: 'translateY(-2px)'
+                  }
+                }}
+              >
+                Etkinlikler
+              </Button>
+            </Box>
+          )}
+
           <Box sx={{ 
             position: 'relative',
-            borderRadius: '8px',
-            bgcolor: alpha('#ffffff', 0.15),
+            borderRadius: '12px',
+            bgcolor: 'rgba(255, 255, 255, 0.1)',
             '&:hover': {
-              bgcolor: alpha('#ffffff', 0.25),
+              bgcolor: 'rgba(255, 255, 255, 0.15)',
             },
-            width: '250px',
-            height: '36px',
+            width: '300px',
+            height: '40px',
             display: 'flex',
-            alignItems: 'center'
+            alignItems: 'center',
+            transition: 'all 0.3s'
           }}>
             <Box sx={{ 
-              padding: '0 8px',
+              padding: '0 12px',
               height: '100%',
               position: 'absolute',
               pointerEvents: 'none',
@@ -254,21 +298,21 @@ const Navbar = () => {
               onChange={handleSearchInputChange}
               autoComplete="off"
               onFocus={(e) => {
-                  if (searchQuery.trim().length >= 2) {
-                      setSearchAnchorEl(e.currentTarget);
-                  }
+                if (searchQuery.trim().length >= 2) {
+                  setSearchAnchorEl(e.currentTarget);
+                }
               }}
               sx={{
-                  color: 'inherit',
-                  width: '100%',
-                  '& .MuiInputBase-input': {
-                      padding: '8px 8px 8px 0',
-                      paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-                      width: '100%',
-                      '&:focus': {
-                          outline: 'none'
-                      }
+                color: 'white',
+                width: '100%',
+                '& .MuiInputBase-input': {
+                  padding: '10px 12px 10px 40px',
+                  fontSize: '0.95rem',
+                  '&::placeholder': {
+                    color: 'rgba(255,255,255,0.7)',
+                    opacity: 1
                   }
+                }
               }}
             />
           </Box>
@@ -278,48 +322,39 @@ const Navbar = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: '0 0 auto' }}>
           {user ? (
             <>
-              <IconButton
-                component={Link}
-                to={user ? '/dashboard' : '/'}
-                sx={{ 
-                  color: 'white',
-                  '&:hover': { 
-                    bgcolor: 'rgba(255, 255, 255, 0.1)' 
-                  }
-                }}
-              >
-                <HomeIcon />
-              </IconButton>
               <Button
                 component={Link}
                 to="/create-event"
+                variant="contained"
                 startIcon={<AddIcon />}
                 sx={{
+                  bgcolor: '#1565c0',
                   color: 'white',
-                  bgcolor: 'rgba(255, 255, 255, 0.1)',
-                  px: 2,
+                  textTransform: 'none',
+                  fontSize: '0.95rem',
+                  px: 3,
                   py: 1,
                   borderRadius: '8px',
-                  textTransform: 'none',
-                  fontWeight: 500,
+                  boxShadow: '0 2px 8px rgba(21, 101, 192, 0.3)',
                   '&:hover': {
-                    bgcolor: 'rgba(255, 255, 255, 0.2)',
+                    bgcolor: '#0d47a1',
                     transform: 'translateY(-2px)',
-                    transition: 'all 0.2s'
+                    boxShadow: '0 4px 12px rgba(21, 101, 192, 0.4)'
                   }
                 }}
               >
                 Etkinlik Oluştur
               </Button>
+
               <Tooltip title="Bildirimler">
                 <IconButton
                   color="inherit"
                   onClick={handleNotificationClick}
                   sx={{
+                    bgcolor: 'rgba(255, 255, 255, 0.1)',
                     '&:hover': {
-                      bgcolor: 'rgba(255, 255, 255, 0.1)',
+                      bgcolor: 'rgba(255, 255, 255, 0.2)',
                       transform: 'scale(1.1)',
-                      transition: 'all 0.2s'
                     }
                   }}
                 >
@@ -343,12 +378,15 @@ const Navbar = () => {
                 sx={{ 
                   display: 'flex', 
                   alignItems: 'center', 
-                  gap: 1,
+                  gap: 1.5,
                   cursor: 'pointer',
+                  padding: '4px 8px',
+                  borderRadius: '8px',
+                  transition: 'all 0.3s',
                   '&:hover': {
+                    bgcolor: 'rgba(255, 255, 255, 0.1)',
                     '& .MuiAvatar-root': {
                       transform: 'scale(1.05)',
-                      transition: 'transform 0.2s'
                     }
                   }
                 }}
@@ -361,18 +399,30 @@ const Navbar = () => {
                     width: 40,
                     height: 40,
                     border: '2px solid white',
+                    transition: 'transform 0.3s',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
                   }}
                 />
-                <Typography
-                  sx={{
-                    color: 'white',
-                    fontSize: '1rem',
-                    letterSpacing: '0.2px',
-                    fontWeight: 500
-                  }}
-                >
-                  {user?.firstName} {user?.lastName}
-                </Typography>
+                <Box>
+                  <Typography
+                    sx={{
+                      color: 'white',
+                      fontSize: '0.95rem',
+                      fontWeight: 500,
+                      lineHeight: 1.2
+                    }}
+                  >
+                    {user?.firstName} {user?.lastName}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: 'rgba(255,255,255,0.7)',
+                      fontSize: '0.8rem'
+                    }}
+                  >
+                    Profil
+                  </Typography>
+                </Box>
               </Box>
 
               <Menu
@@ -385,16 +435,21 @@ const Navbar = () => {
                     mt: 1.5,
                     backgroundColor: '#0A1929',
                     color: 'white',
-                    minWidth: '200px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                    minWidth: '220px',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                    border: '1px solid rgba(255,255,255,0.1)',
                     '& .MuiMenuItem-root': {
                       px: 2,
-                      py: 1,
+                      py: 1.5,
                       display: 'flex',
                       alignItems: 'center',
                       gap: 2,
+                      borderRadius: '8px',
+                      margin: '4px 8px',
+                      transition: 'all 0.2s',
                       '&:hover': {
-                        backgroundColor: 'rgba(144, 202, 249, 0.08)'
+                        backgroundColor: 'rgba(144, 202, 249, 0.08)',
+                        transform: 'translateX(4px)'
                       }
                     }
                   }
@@ -402,9 +457,9 @@ const Navbar = () => {
                 transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                 anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
               >
-                <MenuItem component={Link} to="/profile">
+                <MenuItem onClick={handleClose} component={Link} to="/profile" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <PersonIcon sx={{ color: '#90caf9' }} />
-                  Profilim
+                  <Typography>Profilim</Typography>
                 </MenuItem>
                 <MenuItem component={Link} to="/favorites">
                   <FavoriteIcon sx={{ color: '#ff1744' }} />
@@ -427,31 +482,44 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link 
+              <Button 
+                component={Link} 
                 to="/login" 
-                style={{ 
-                  textDecoration: 'none',
+                sx={{ 
                   color: 'white',
-                  padding: '8px 16px',
-                  borderRadius: '4px',
-                  transition: 'background-color 0.2s'
+                  textTransform: 'none',
+                  fontSize: '0.95rem',
+                  px: 3,
+                  py: 1,
+                  borderRadius: '8px',
+                  '&:hover': {
+                    bgcolor: 'rgba(255,255,255,0.1)'
+                  }
                 }}
               >
                 Giriş Yap
-              </Link>
-              <Link 
+              </Button>
+              <Button 
+                component={Link} 
                 to="/register" 
-                style={{ 
-                  textDecoration: 'none',
-                  backgroundColor: '#1976d2',
+                sx={{ 
+                  bgcolor: 'primary.main',
                   color: 'white',
-                  padding: '8px 16px',
-                  borderRadius: '4px',
-                  transition: 'background-color 0.2s'
+                  textTransform: 'none',
+                  fontSize: '0.95rem',
+                  px: 3,
+                  py: 1,
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 8px rgba(25, 118, 210, 0.3)',
+                  '&:hover': {
+                    bgcolor: 'primary.dark',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(25, 118, 210, 0.4)'
+                  }
                 }}
               >
                 Kayıt Ol
-              </Link>
+              </Button>
             </>
           )}
         </Box>

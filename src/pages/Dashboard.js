@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Typography, Grid, Paper, Box, Card, CardContent, Button, IconButton, Divider, CircularProgress, Fab, Avatar, Tooltip } from '@mui/material';
+import { Container, Typography, Grid, Paper, Box, Card, CardContent, Button, IconButton, Divider, CircularProgress, Fab, Avatar, Tooltip, Chip } from '@mui/material';
 import { EventAvailable, People, LocationOn, CalendarMonth, AccessTime, Category, Add, FilterList, Warning, AttachMoney } from '@mui/icons-material';
 import EventService from '../services/event.service';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -8,6 +8,7 @@ import L from 'leaflet';
 import { useNavigate, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
+import { useAuth } from '../context/AuthContext';
 
 // Leaflet varsayılan ikonunu düzeltmek için
 delete L.Icon.Default.prototype._getIconUrl;
@@ -17,43 +18,99 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-const StatisticCard = ({ icon, title, value, color }) => (
+const StatisticCard = ({ icon, title, value, color, trend }) => (
   <Paper
     elevation={0}
     sx={{
-      p: 2.5,
+      p: 3,
       height: '100%',
-      bgcolor: '#23303F',
-      borderRadius: '16px',
+      background: `linear-gradient(135deg, ${color}15 0%, rgba(255,255,255,0.02) 100%)`,
+      borderRadius: '24px',
+      border: '1px solid rgba(255, 255, 255, 0.05)',
+      backdropFilter: 'blur(10px)',
       display: 'flex',
-      alignItems: 'center',
+      flexDirection: 'column',
       gap: 2,
-      transition: 'transform 0.2s, box-shadow 0.2s',
+      position: 'relative',
+      overflow: 'hidden',
+      transition: 'all 0.3s ease',
       '&:hover': {
-        transform: 'translateY(-5px)',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+        transform: 'translateY(-8px)',
+        boxShadow: `0 12px 24px ${color}10`,
+        '& .stat-icon': {
+          transform: 'scale(1.1) rotate(5deg)',
+        },
+        '& .stat-value': {
+          color: color,
+        }
+      },
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: `radial-gradient(circle at top right, ${color}10, transparent 70%)`,
+        opacity: 0.5,
       }
     }}
   >
-    <Box
-      sx={{
-        width: 50,
-        height: 50,
-        borderRadius: '12px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bgcolor: `${color}15`,
-      }}
-    >
-      {React.cloneElement(icon, { sx: { fontSize: 24, color: color } })}
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <Box
+        className="stat-icon"
+        sx={{
+          width: 56,
+          height: 56,
+          borderRadius: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: `${color}15`,
+          transition: 'all 0.3s ease',
+        }}
+      >
+        {React.cloneElement(icon, { sx: { fontSize: 28, color: color } })}
+      </Box>
+      {trend && (
+        <Chip
+          label={`${trend > 0 ? '+' : ''}${trend}%`}
+          size="small"
+          sx={{
+            bgcolor: trend > 0 ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
+            color: trend > 0 ? '#81c784' : '#e57373',
+            borderRadius: '12px',
+            height: '24px',
+            fontSize: '0.75rem',
+            fontWeight: 600
+          }}
+        />
+      )}
     </Box>
-    <Box>
-      <Typography variant="subtitle1" sx={{ color: 'white', fontWeight: 500, mb: 0.5 }}>
-        {title}
-      </Typography>
-      <Typography variant="h5" sx={{ color: 'white', fontWeight: 600 }}>
+
+    <Box sx={{ mt: 'auto' }}>
+      <Typography 
+        className="stat-value"
+        variant="h3" 
+        sx={{ 
+          color: 'white', 
+          fontWeight: 700,
+          transition: 'color 0.3s ease',
+          fontSize: { xs: '1.8rem', sm: '2.2rem' }
+        }}
+      >
         {value}
+      </Typography>
+      <Typography 
+        variant="subtitle1" 
+        sx={{ 
+          color: 'rgba(255,255,255,0.7)', 
+          fontWeight: 500,
+          mt: 1,
+          fontSize: { xs: '0.9rem', sm: '1rem' }
+        }}
+      >
+        {title}
       </Typography>
     </Box>
   </Paper>
@@ -68,113 +125,151 @@ const formatDate = (dateString) => {
 };
 
 const EventCard = ({ event }) => {
-  console.log('Event data in EventCard:', event);
-  console.log('Organizer data:', event?.organizer);
-  console.log('Organizer ID:', event?.organizer?.id?.toString());
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleOrganizerClick = (e, organizerId) => {
+    e.stopPropagation();
+    if (user?.id === organizerId) {
+      navigate('/profile');
+    } else {
+      navigate(`/users/${organizerId}`);
+    }
+  };
+
   return (
     <Card 
       sx={{ 
         mb: 2,
-        borderRadius: '12px',
+        borderRadius: '16px',
         overflow: 'hidden',
         display: 'flex',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        bgcolor: 'rgba(255, 255, 255, 0.05)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+          bgcolor: 'rgba(255, 255, 255, 0.1)',
+        }
       }}
     >
-      {/* Sol taraf - Tarih */}
+      {/* Sol taraf - Tarih ve Görsel */}
       <Box 
         sx={{ 
-          width: '100px',
-          bgcolor: '#0A2540',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          p: 2
+          width: '180px',
+          position: 'relative',
+          overflow: 'hidden'
         }}
       >
-        <Typography variant="h2" sx={{ color: 'white', fontWeight: 700, lineHeight: 1 }}>
-          {event?.date ? new Date(event.date).getDate() : '--'}
-        </Typography>
-        <Typography variant="h6" sx={{ color: 'white', fontWeight: 500, textTransform: 'uppercase' }}>
-          {event?.date ? format(new Date(event.date), 'MMM', { locale: tr }) : ''}
-        </Typography>
-        <Typography variant="h6" sx={{ color: 'white', mt: 1, fontWeight: 600 }}>
-          {event?.eventTime || '--:--'}
-        </Typography>
+        <img
+          src={event?.imageUrl || 'https://via.placeholder.com/300x200'}
+          alt={event?.title}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            position: 'absolute',
+            top: 0,
+            left: 0
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: 2,
+            textAlign: 'center'
+          }}
+        >
+          <Typography variant="h3" sx={{ color: 'white', fontWeight: 700, lineHeight: 1, mb: 1 }}>
+            {event?.date ? new Date(event.date).getDate() : '--'}
+          </Typography>
+          <Typography variant="h6" sx={{ color: 'white', fontWeight: 500, textTransform: 'uppercase' }}>
+            {event?.date ? format(new Date(event.date), 'MMM', { locale: tr }) : ''}
+          </Typography>
+          <Typography variant="subtitle1" sx={{ color: 'white', mt: 1, fontWeight: 500 }}>
+            {event?.eventTime || '--:--'}
+          </Typography>
+        </Box>
       </Box>
 
       {/* Sağ taraf - İçerik */}
-      <Box sx={{ flex: 1, p: 2, display: 'flex', flexDirection: 'column', bgcolor: 'white' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a237e', mb: 1 }}>
-              {event?.title || 'Etkinlik Adı'}
+      <Box sx={{ flex: 1, p: 2.5, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h6" sx={{ color: 'white', fontWeight: 600, mb: 1 }}>
+              {event?.title}
             </Typography>
             
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 0.5,
-                bgcolor: 'rgba(63, 81, 181, 0.1)',
-                px: 1.5,
-                py: 0.5,
-                borderRadius: '8px',
-                fontSize: '0.875rem'
-              }}>
-                <Category sx={{ fontSize: 16, color: '#3F51B5' }} />
-                <Typography sx={{ color: '#3F51B5', fontWeight: 500 }}>
-                  {event?.category || 'Kategori'}
-                </Typography>
-              </Box>
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 0.5,
-                bgcolor: event?.paid ? 'rgba(245, 124, 0, 0.1)' : 'rgba(76, 175, 80, 0.1)',
-                px: 1.5,
-                py: 0.5,
-                borderRadius: '8px',
-                fontSize: '0.875rem'
-              }}>
-                <AttachMoney sx={{ fontSize: 16, color: event?.paid ? '#F57C00' : '#4CAF50' }} />
-                <Typography sx={{ color: event?.paid ? '#F57C00' : '#4CAF50', fontWeight: 500 }}>
-                  {event?.paid ? 'Ücretli' : 'Ücretsiz'}
-                </Typography>
-              </Box>
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 0.5,
-                bgcolor: 'rgba(63, 81, 181, 0.1)',
-                px: 1.5,
-                py: 0.5,
-                borderRadius: '8px',
-                fontSize: '0.875rem'
-              }}>
-                <LocationOn sx={{ fontSize: 16, color: '#3F51B5' }} />
-                <Typography sx={{ color: '#3F51B5', fontWeight: 500 }}>
-                  {event?.location || 'Konum'}
-                </Typography>
-              </Box>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <Chip
+                icon={<Category sx={{ color: 'inherit' }} />}
+                label={event?.category}
+                size="small"
+                sx={{
+                  bgcolor: 'rgba(63, 81, 181, 0.2)',
+                  color: '#90caf9',
+                  borderRadius: '8px',
+                  '& .MuiChip-icon': {
+                    color: 'inherit'
+                  }
+                }}
+              />
+              <Chip
+                icon={<LocationOn sx={{ color: 'inherit' }} />}
+                label={event?.location}
+                size="small"
+                sx={{
+                  bgcolor: 'rgba(76, 175, 80, 0.2)',
+                  color: '#a5d6a7',
+                  borderRadius: '8px',
+                  '& .MuiChip-icon': {
+                    color: 'inherit'
+                  }
+                }}
+              />
+              <Chip
+                icon={<AttachMoney sx={{ color: 'inherit' }} />}
+                label={event?.isPaid ? `${event.price} ₺` : 'Ücretsiz'}
+                size="small"
+                sx={{
+                  bgcolor: event?.isPaid ? 'rgba(244, 67, 54, 0.2)' : 'rgba(76, 175, 80, 0.2)',
+                  color: event?.isPaid ? '#ef9a9a' : '#a5d6a7',
+                  borderRadius: '8px',
+                  '& .MuiChip-icon': {
+                    color: 'inherit'
+                  }
+                }}
+              />
             </Box>
           </Box>
-          <Tooltip title={`Organizatör: ${event?.organizer?.firstName || ''} ${event?.organizer?.lastName || ''}`}>
+          
+          <Tooltip title={`${event?.organizer?.firstName || ''} ${event?.organizer?.lastName || ''}`}>
             <Avatar
               src={event?.organizer?.profilePicture}
               alt={`${event?.organizer?.firstName || ''} ${event?.organizer?.lastName || ''}`}
+              onClick={(e) => handleOrganizerClick(e, event?.organizer?.id)}
               sx={{ 
-                width: 40, 
-                height: 40,
-                border: '2px solid #4051B5',
-                ml: 2,
+                width: 44,
+                height: 44,
+                border: '2px solid rgba(255, 255, 255, 0.2)',
                 cursor: 'pointer',
+                transition: 'all 0.2s ease',
                 '&:hover': {
                   transform: 'scale(1.1)',
-                  transition: 'transform 0.2s ease-in-out'
+                  borderColor: 'primary.main'
                 }
-              }} 
+              }}
             />
           </Tooltip>
         </Box>
@@ -182,62 +277,60 @@ const EventCard = ({ event }) => {
         <Typography 
           variant="body2" 
           sx={{ 
-            color: '#666', 
+            color: 'rgba(255, 255, 255, 0.7)',
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
-            mb: 2
+            mb: 2,
+            flex: 1
           }}
         >
-          {event?.description || 'Etkinlik açıklaması'}
+          {event?.description}
         </Typography>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto' }}>
           <Box sx={{ display: 'flex', gap: 1 }}>
-            {event?.ageLimit > 0 && (
-              <Box sx={{ 
-                bgcolor: '#F57C00',
-                color: 'white',
-                px: 1.5,
-                py: 0.5,
-                borderRadius: '8px',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center'
-              }}>
-                {event.ageLimit}+
-              </Box>
+            {event?.hasAgeLimit && (
+              <Chip
+                label={`${event.ageLimit}+ Yaş`}
+                size="small"
+                sx={{
+                  bgcolor: 'rgba(255, 152, 0, 0.2)',
+                  color: '#ffcc80',
+                  borderRadius: '8px',
+                  height: '24px'
+                }}
+              />
             )}
-            <Box sx={{ 
-              bgcolor: '#F3E5F5',
-              color: '#7B1FA2',
-              px: 1.5,
-              py: 0.5,
-              borderRadius: '8px',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center'
-            }}>
-              {event?.participants ? `${event.participants.filter(p => p.status === 'APPROVED').length}/${event.maxParticipants}` : '0/1000'}
-            </Box>
+            <Chip
+              icon={<People sx={{ fontSize: '16px' }} />}
+              label={`${event?.participants?.length || 0}/${event?.maxParticipants || '∞'}`}
+              size="small"
+              sx={{
+                bgcolor: 'rgba(156, 39, 176, 0.2)',
+                color: '#ce93d8',
+                borderRadius: '8px',
+                height: '24px',
+                '& .MuiChip-icon': {
+                  color: '#ce93d8'
+                }
+              }}
+            />
           </Box>
 
-          <Button 
-            component={Link}
-            to={`/events/${event?.id}`}
-            variant="contained" 
-            size="small"
-            sx={{ 
-              bgcolor: '#3F51B5',
-              color: 'white',
-              '&:hover': {
-                bgcolor: '#303F9F'
-              },
+          <Button
+            variant="contained"
+            onClick={() => navigate(`/events/${event?.id}`)}
+            sx={{
               textTransform: 'none',
-              px: 2
+              bgcolor: 'rgba(63, 81, 181, 0.2)',
+              color: '#90caf9',
+              borderRadius: '8px',
+              px: 2,
+              '&:hover': {
+                bgcolor: 'rgba(63, 81, 181, 0.4)'
+              }
             }}
           >
             Detayları Gör
@@ -411,51 +504,13 @@ const Dashboard = () => {
           Etkinlikler Dünyasına Hoş Geldiniz
         </Typography>
 
-        <Grid container spacing={4} sx={{ mb: 8, color: '#23303F' }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatisticCard
-              icon={<EventAvailable />}
-              title="Toplam Etkinlik"
-              value={events.length}
-              color="#3f51b5"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatisticCard
-              icon={<People />}
-              title="Katılımcılar"
-              value={events.reduce((total, event) => total + (event.participants?.length || 0), 0)}
-              color="#4CAF50"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatisticCard
-              icon={<LocationOn />}
-              title="Aktif Şehirler"
-              value={new Set(events.map(event => event.location?.split(',')[0])).size}
-              color="#FF9800"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatisticCard
-              icon={<CalendarMonth />}
-              title="Bu Ay"
-              value={events.filter(event => {
-                const eventDate = new Date(event.date);
-                const currentDate = new Date();
-                return eventDate.getMonth() === currentDate.getMonth() &&
-                       eventDate.getFullYear() === currentDate.getFullYear();
-              }).length}
-              color="#F44336"
-            />
-          </Grid>
-        </Grid>
-
+        {/* Ana İçerik Bölümü */}
         <Grid container spacing={6} sx={{ mb: 8 }}>
+          {/* Harita Bölümü */}
           <Grid item xs={12} lg={6}>
             <Box
               sx={{
-                bgcolor: 'rgba(255, 255, 255, 0.1)',
+                bgcolor: 'rgba(255, 255, 255, 0.05)',
                 borderRadius: '24px',
                 p: { xs: 2, sm: 3, md: 4 },
                 boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
@@ -475,10 +530,11 @@ const Dashboard = () => {
             </Box>
           </Grid>
 
+          {/* Etkinlikler Listesi */}
           <Grid item xs={12} lg={6}>
             <Box
               sx={{
-                bgcolor: 'rgba(255, 255, 255, 0.1)',
+                bgcolor: 'rgba(255, 255, 255, 0.05)',
                 borderRadius: '24px',
                 p: { xs: 2, sm: 3, md: 4 },
                 boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
@@ -510,7 +566,7 @@ const Dashboard = () => {
               </Box>
               {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>
-                  <CircularProgress />
+                  <CircularProgress sx={{ color: 'white' }} />
                 </Box>
               ) : error ? (
                 <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -582,70 +638,81 @@ const Dashboard = () => {
             </Box>
           </Grid>
         </Grid>
-      </Box>
-      
-      {/* Footer */}
-      <Box
-        sx={{
-          width: '100%',
-          bgcolor: 'rgba(255, 255, 255, 0.05)',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-          mt: 8
-        }}
-      >
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ color: 'white', mb: 2 }}>
-                EventVerse
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                Etkinliklerin dünyasına hoş geldiniz. Yeni deneyimler keşfedin, insanlarla tanışın ve unutulmaz anılar biriktirin.
-              </Typography>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ color: 'white', mb: 2 }}>
-                Hızlı Bağlantılar
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Button sx={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'left', justifyContent: 'flex-start' }}>
-                  Ana Sayfa
-                </Button>
-                <Button sx={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'left', justifyContent: 'flex-start' }}>
-                  Etkinlikler
-                </Button>
-                <Button sx={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'left', justifyContent: 'flex-start' }}>
-                  Hakkımızda
-                </Button>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ color: 'white', mb: 2 }}>
-                İletişim
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', mb: 1 }}>
-                Email: info@eventverse.com
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                Tel: +90 (212) 123 45 67
-              </Typography>
-            </Grid>
-          </Grid>
+
+        {/* İstatistik Kartları */}
+        <Box sx={{ mb: 8 }}>
           <Typography 
-            variant="body2" 
+            variant="h4" 
             sx={{ 
-              color: 'rgba(255, 255, 255, 0.5)', 
+              color: 'white', 
+              fontWeight: 700, 
+              mb: 4, 
               textAlign: 'center',
-              mt: 4,
-              pt: 3,
-              borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+              position: 'relative',
+              display: 'inline-block',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: -8,
+                left: '10%',
+                width: '80%',
+                height: '4px',
+                background: 'linear-gradient(90deg, #3f51b5 0%, #f50057 100%)',
+                borderRadius: '2px',
+              }
             }}
           >
-            © 2024 EventVerse. Tüm hakları saklıdır.
+            Platform İstatistikleri
           </Typography>
-        </Container>
+          <Grid container spacing={4}>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatisticCard
+                icon={<EventAvailable />}
+                title="Toplam Etkinlik"
+                value={events.length}
+                color="#3f51b5"
+                trend={12}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatisticCard
+                icon={<People />}
+                title="Toplam Katılımcı"
+                value={events.reduce((total, event) => total + (event.participants?.length || 0), 0)}
+                color="#4CAF50"
+                trend={8}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatisticCard
+                icon={<LocationOn />}
+                title="Aktif Şehir"
+                value={new Set(events.map(event => event.location?.split(',')[0])).size}
+                color="#FF9800"
+                trend={5}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatisticCard
+                icon={<CalendarMonth />}
+                title="Bu Ayki Etkinlik"
+                value={events.filter(event => {
+                  const eventDate = new Date(event.date);
+                  const currentDate = new Date();
+                  return eventDate.getMonth() === currentDate.getMonth() &&
+                         eventDate.getFullYear() === currentDate.getFullYear();
+                }).length}
+                color="#F44336"
+                trend={15}
+              />
+            </Grid>
+          </Grid>
+        </Box>
       </Box>
       
+      {/* Yeni Etkinlik Oluştur Butonu */}
       <Fab
         color="primary"
         aria-label="add"
