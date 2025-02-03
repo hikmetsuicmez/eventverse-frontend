@@ -50,6 +50,9 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import FavoriteService from '../services/favorite.service';
 import CommentSection from '../components/CommentSection';
+import NotificationService from '../services/notification.service';
+import { toast } from 'react-toastify';
+import PaymentModal from '../components/PaymentModal';
 
 // Leaflet varsayılan ikonunu düzeltmek için
 delete L.Icon.Default.prototype._getIconUrl;
@@ -163,6 +166,7 @@ const EventDetail = () => {
     const [successMessage, setSuccessMessage] = useState('');
     const [participationStatus, setParticipationStatus] = useState(null);
     const [participantActionLoading, setParticipantActionLoading] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
     const navigate = useNavigate();
 
     const fetchEventDetails = async () => {
@@ -250,6 +254,104 @@ const EventDetail = () => {
         }
     };
 
+    const getParticipationStatusText = (status) => {
+        switch (status) {
+            case 'PENDING':
+                return 'Onay Bekleniyor';
+            case 'APPROVED':
+                return 'Onaylandı';
+            case 'REJECTED':
+                return 'Reddedildi';
+            case 'PAYMENT_PENDING':
+                return 'Ödeme Bekleniyor';
+            case 'COMPLETED':
+                return 'Katılım Tamamlandı';
+            default:
+                return '';
+        }
+    };
+
+    const getParticipationStatusColor = (status) => {
+        switch (status) {
+            case 'PENDING':
+                return '#ffb74d';
+            case 'APPROVED':
+                return '#81c784';
+            case 'REJECTED':
+                return '#e57373';
+            case 'PAYMENT_PENDING':
+                return '#64b5f6';
+            case 'COMPLETED':
+                return '#81c784';
+            default:
+                return '#ffffff';
+        }
+    };
+
+    const getParticipationButton = () => {
+        if (!user) {
+            return (
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => navigate('/login')}
+                    startIcon={<Group />}
+                >
+                    Giriş Yap
+                </Button>
+            );
+        }
+
+        if (event.organizer.id === user.id) {
+            return null;
+        }
+
+        if (participationStatus) {
+            if (participationStatus === 'PAYMENT_PENDING') {
+                return (
+                    <Chip
+                        label={getParticipationStatusText(participationStatus)}
+                        onClick={() => setShowPaymentModal(true)}
+                        sx={{
+                            bgcolor: `${getParticipationStatusColor(participationStatus)}20`,
+                            color: getParticipationStatusColor(participationStatus),
+                            borderRadius: '16px',
+                            px: 2,
+                            cursor: 'pointer',
+                            '&:hover': {
+                                bgcolor: `${getParticipationStatusColor(participationStatus)}30`,
+                            }
+                        }}
+                    />
+                );
+            }
+            
+            return (
+                <Chip
+                    label={getParticipationStatusText(participationStatus)}
+                    sx={{
+                        bgcolor: `${getParticipationStatusColor(participationStatus)}20`,
+                        color: getParticipationStatusColor(participationStatus),
+                        borderRadius: '16px',
+                        px: 2
+                    }}
+                />
+            );
+        }
+
+        return (
+            <Button
+                variant="contained"
+                color="primary"
+                onClick={handleJoinEvent}
+                disabled={joinLoading}
+                startIcon={<Group />}
+            >
+                {joinLoading ? 'İşleniyor...' : 'Katıl'}
+            </Button>
+        );
+    };
+
     const handleJoinEvent = async () => {
         try {
             setJoinLoading(true);
@@ -257,15 +359,25 @@ const EventDetail = () => {
             setSuccessMessage('');
 
             const response = await EventService.joinEvent(id);
-            setParticipationStatus('PENDING');
-            setSuccessMessage('Etkinliğe katılım talebiniz alındı. Organizatör onayı bekleniyor.');
-            await fetchEventDetails(); // Etkinlik detaylarını güncelle
+            if (response.data) {
+                if (event.isPaid) {
+                    setParticipationStatus('PAYMENT_PENDING');
+                    setShowPaymentModal(true);
+                    toast.info('Ödeme yapmanız gerekmektedir');
+                } else {
+                    setParticipationStatus('PENDING');
+                    toast.success('Katılım talebiniz alındı');
+                }
+            }
+            await fetchEventDetails();
         } catch (error) {
             console.error('Etkinliğe katılırken hata:', error);
             if (error.message) {
                 setError(error.message);
+                toast.error(error.message);
             } else {
                 setError('Etkinliğe katılırken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+                toast.error('Etkinliğe katılırken bir hata oluştu');
             }
         } finally {
             setJoinLoading(false);
@@ -311,6 +423,25 @@ const EventDetail = () => {
         } else {
             navigate(`/users/${organizerId}`);
         }
+    };
+
+    const handlePayment = async (paymentData) => {
+        try {
+            const response = await EventService.processPayment(id, paymentData);
+            if (response.data) {
+                setParticipationStatus('COMPLETED');
+                toast.success('Ödeme başarıyla tamamlandı');
+                setShowPaymentModal(false);
+                await NotificationService.getNotifications();
+                await fetchEventDetails();
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Ödeme işlemi sırasında bir hata oluştu');
+        }
+    };
+
+    const handleClosePaymentModal = () => {
+        setShowPaymentModal(false);
     };
 
     if (loading) {
@@ -512,121 +643,7 @@ const EventDetail = () => {
                                 <Divider sx={{ my: 3, bgcolor: 'rgba(255, 255, 255, 0.1)' }} />
 
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    {participationStatus === 'APPROVED' ? (
-                                        <Button
-                                            variant="contained"
-                                            size="large"
-                                            disabled
-                                            sx={{
-                                                bgcolor: '#4CAF50',
-                                                '&.Mui-disabled': {
-                                                    bgcolor: '#4CAF50',
-                                                    color: 'white'
-                                                },
-                                                borderRadius: '8px',
-                                                px: 4
-                                            }}
-                                        >
-                                            Katıldınız
-                                        </Button>
-                                    ) : participationStatus === 'PENDING' ? (
-                                        <Button
-                                            variant="contained"
-                                            size="large"
-                                            disabled
-                                            sx={{
-                                                bgcolor: '#FFA000',
-                                                '&.Mui-disabled': {
-                                                    bgcolor: '#FFA000',
-                                                    color: 'white'
-                                                },
-                                                borderRadius: '8px',
-                                                px: 4
-                                            }}
-                                        >
-                                            Onay Bekleniyor
-                                        </Button>
-                                    ) : participationStatus === 'REJECTED' ? (
-                                        <Button
-                                            variant="contained"
-                                            size="large"
-                                            disabled
-                                            sx={{
-                                                bgcolor: '#D32F2F',
-                                                '&.Mui-disabled': {
-                                                    bgcolor: '#D32F2F',
-                                                    color: 'white'
-                                                },
-                                                borderRadius: '8px',
-                                                px: 4
-                                            }}
-                                        >
-                                            Reddedildi
-                                        </Button>
-                                    ) : user?.id !== event.organizer?.id ? (
-                                        participationStatus ? (
-                                            <Button
-                                                variant="contained"
-                                                size="large"
-                                                disabled
-                                                sx={{
-                                                    bgcolor: '#9E9E9E',
-                                                    '&.Mui-disabled': {
-                                                        bgcolor: '#9E9E9E',
-                                                        color: 'white'
-                                                    },
-                                                    borderRadius: '8px',
-                                                    px: 4
-                                                }}
-                                            >
-                                                {participationStatus === 'APPROVED' ? 'Katıldınız' : 'Onay Bekleniyor'}
-                                            </Button>
-                                        ) : (
-                                            <Button
-                                                variant="contained"
-                                                size="large"
-                                                onClick={handleJoinEvent}
-                                                disabled={joinLoading || event.participants?.length >= event.maxParticipants}
-                                                sx={{
-                                                    bgcolor: event.participants?.length >= event.maxParticipants ? '#9E9E9E' : '#1a237e',
-                                                    '&:hover': {
-                                                        bgcolor: event.participants?.length >= event.maxParticipants ? '#9E9E9E' : '#0d47a1'
-                                                    },
-                                                    '&.Mui-disabled': {
-                                                        bgcolor: '#9E9E9E',
-                                                        color: 'white'
-                                                    },
-                                                    borderRadius: '8px',
-                                                    px: 4
-                                                }}
-                                            >
-                                                {joinLoading ? (
-                                                    <CircularProgress size={24} color="inherit" />
-                                                ) : event.participants?.length >= event.maxParticipants ? (
-                                                    'Kontenjan Dolu'
-                                                ) : (
-                                                    'Katıl'
-                                                )}
-                                            </Button>
-                                        )
-                                    ) : (
-                                        <Button
-                                            variant="contained"
-                                            size="large"
-                                            disabled
-                                            sx={{
-                                                bgcolor: '#9E9E9E',
-                                                '&.Mui-disabled': {
-                                                    bgcolor: '#9E9E9E',
-                                                    color: 'white'
-                                                },
-                                                borderRadius: '8px',
-                                                px: 4
-                                            }}
-                                        >
-                                            Organizatör
-                                        </Button>
-                                    )}
+                                    {getParticipationButton()}
                                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                                         <Typography variant="body2" sx={{ 
                                             color: event.participants?.length >= event.maxParticipants ? 'error.main' : 'text.secondary',
@@ -914,6 +931,14 @@ const EventDetail = () => {
                     </Grid>
                 </Paper>
             </Container>
+
+            {/* Ödeme Modal'ı */}
+            <PaymentModal
+                show={showPaymentModal}
+                onClose={handleClosePaymentModal}
+                onSubmit={handlePayment}
+                amount={event?.price}
+            />
         </Box>
     );
 };

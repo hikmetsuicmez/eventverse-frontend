@@ -55,7 +55,7 @@ const UserProfile = () => {
 
                 const eventsResponse = await EventService.getUserCreatedEvents(id);
                 if (eventsResponse && eventsResponse.data) {
-                    setUserEvents(eventsResponse.data);
+                setUserEvents(eventsResponse.data);
                 }
             } catch (error) {
                 console.error('Error fetching user data:', error);
@@ -246,9 +246,9 @@ const UserProfile = () => {
                                                             </Button>
                                                         </Box>
                                                     </Box>
-                                                </Box>
+                                        </Box>
                                             </Paper>
-                                        </Grid>
+                                    </Grid>
                                     ))
                                 ) : (
                                     <Grid item xs={12}>

@@ -120,26 +120,40 @@ const EventService = {
     joinEvent: async (eventId) => {
         try {
             const response = await api.post(`/api/v1/events/${eventId}/participants`);
-            return response.data;
+            return response;
         } catch (error) {
             console.error('Join event error:', error);
-            if (error.response) {
-                if (error.response.status === 400) {
-                    throw new Error('Bu etkinliğe zaten katıldınız');
-                } else if (error.response.status === 403) {
-                    throw new Error('Etkinlik organizatörü kendi etkinliğine katılamaz');
-                } else if (error.response.status === 404) {
-                    throw new Error('Etkinlik bulunamadı');
-                } else if (error.response.status === 500) {
-                    throw new Error('Sunucu hatası oluştu. Lütfen daha sonra tekrar deneyiniz');
-                } else {
-                    throw new Error(error.response.data.message || 'Etkinliğe katılırken bir hata oluştu');
-                }
-            } else if (error.request) {
-                throw new Error('Sunucuya ulaşılamıyor. Lütfen internet bağlantınızı kontrol ediniz');
-            } else {
-                throw new Error('Beklenmeyen bir hata oluştu');
-            }
+            throw error;
+        }
+    },
+
+    getParticipants: async (eventId) => {
+        try {
+            const response = await api.get(`/api/v1/events/${eventId}/participants`);
+            return response;
+        } catch (error) {
+            console.error('Get participants error:', error);
+            throw error;
+        }
+    },
+
+    processPayment: async (eventId, paymentData) => {
+        try {
+            const response = await api.post(`/api/v1/payments/${eventId}`, paymentData);
+            return response;
+        } catch (error) {
+            console.error('Process payment error:', error);
+            throw error;
+        }
+    },
+
+    getPaymentStatus: async (eventId) => {
+        try {
+            const response = await api.get(`/api/v1/payments/${eventId}/status`);
+            return response;
+        } catch (error) {
+            console.error('Get payment status error:', error);
+            throw error;
         }
     },
 
